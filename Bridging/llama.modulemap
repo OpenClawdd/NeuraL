@@ -1,0 +1,30 @@
+//
+//  llama.modulemap
+//  NeuraL
+//
+//  Module map for llama.cpp static library. Place this file in the
+//  Bridging/ directory and add its parent path to:
+//    SWIFT_INCLUDE_PATHS = $(SRCROOT)/Bridging
+//
+//  This allows `import llama` in Swift files instead of relying solely
+//  on the bridging header. Using the modulemap approach is preferred
+//  because it enables incremental compilation and avoids polluting the
+//  global namespace.
+//
+//  NOTE: If you use the bridging header approach exclusively, this
+//  modulemap is not required. Both approaches work; the modulemap
+//  is cleaner for larger projects.
+//
+
+module llama {
+    header "llama.h"
+    link "llama"
+    link "ggml"
+    export *
+}
+
+module ggml {
+    header "ggml.h"
+    link "ggml"
+    export *
+}

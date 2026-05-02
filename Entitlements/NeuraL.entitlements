@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+        Extended Virtual Addressing: Allows the process to use a larger virtual
+        address space on supported hardware. On iOS devices with 8GB+ RAM (e.g.
+        iPad Pro M1/M2/M4 16GB, iPhone 15 Pro), this entitlement lifts the
+        default ~3GB per-process limit to ~6-8GB, which is essential for loading
+        1.5B-3B quantized models (Q4_K_M ≈ 1.0-2.0GB on disk, but the KV cache
+        and context window add significant overhead).
+
+        NOTE: This entitlement is only granted to apps signed with a paid
+        Apple Developer certificate. It does NOT work with free provisioning.
+        For sideloading via AltStore/SideStore with a developer cert, include
+        this in the IPA's embedded.mobileprovision.
+    -->
+    <key>com.apple.developer.kernel.extended-virtual-addressing</key>
+    <true/>
+
+    <!--
+        Hardened Runtime is required for extended-virtual-addressing on macOS.
+        On iOS this is implicitly enabled for signed apps, but we include it
+        for completeness when testing on macOS (Mac Catalyst / Designed for iPad).
+    -->
+    <key>com.apple.developer.hardened-process</key>
+    <true/>
+</dict>
+</plist>
