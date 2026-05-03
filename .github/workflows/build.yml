@@ -10,6 +10,27 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build llama.cpp for iOS (arm64)
+        run: |
+          cd llama.cpp
+          mkdir -p build
+          cd build
+          cmake .. \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=17.0 \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_INSTALL_PREFIX=./install \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DLLAMA_METAL=ON \
+            -DLLAMA_ACCELERATE=ON
+          cmake --build . --config Release -j$(sysctl -n hw.logicalcpu)
+          mkdir -p ../../build/llama
+          cp libllama.a libggml.a ../../build/llama/
+          cp -R ../include ../../build/llama/
+          cp -R ../ggml/include ../../build/llama/
 
       - name: Install XcodeGen
         run: brew install xcodegen
