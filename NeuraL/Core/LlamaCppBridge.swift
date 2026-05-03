@@ -67,7 +67,9 @@ actor LlamaCppBridge {
         for _ in 0..<params.maxTokens {
             let token = llama_sampler_sample(chain, ctx, -1)
             let isEog = llama_vocab_is_eog(vocab, token)
-            let text = isEog ? "" : String(cString: llama_token_to_piece(ctx, token, false))
+            var buf = [CChar](repeating: 0, count: 256)
+            llama_token_to_piece(ctx, token, &buf, 256, 0, false)
+            let text = isEog ? "" : String(cString: buf)
             result.append(EmittedToken(text: text, tokenID: token, isEndOfGeneration: isEog, cumulativeTokenCount: count, elapsedSeconds: Date().timeIntervalSince(start), probability: 1))
             if isEog { break }
             var one = [token]
@@ -85,4 +87,3 @@ actor LlamaCppBridge {
         if let m = model { llama_model_free(m); model = nil }
     }
 }
-
