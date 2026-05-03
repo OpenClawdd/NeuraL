@@ -1,4 +1,4 @@
-import Foundation
+﻿import Foundation
 import os
 
 actor LlamaCppBridge {
@@ -51,11 +51,11 @@ actor LlamaCppBridge {
                 continuation.finish(throwing: InferenceError.contextInvalidated)
                 return
             }
-            // process prompt
             self.processPrompt(tokens: promptTokens)
 
             let vocab = llama_model_get_vocab(m)
-            let chain = llama_sampler_chain_init(nil)
+            var sparams = llama_sampler_chain_params()
+            let chain = llama_sampler_chain_init(&sparams)
             llama_sampler_chain_add(chain, llama_sampler_init_temp(params.temperature))
             llama_sampler_chain_add(chain, llama_sampler_init_top_k(params.topK))
             llama_sampler_chain_add(chain, llama_sampler_init_top_p(params.topP, 1))
@@ -90,7 +90,8 @@ actor LlamaCppBridge {
                 return
             }
             let vocab = llama_model_get_vocab(m)
-            let chain = llama_sampler_chain_init(nil)
+            var sparams = llama_sampler_chain_params()
+            let chain = llama_sampler_chain_init(&sparams)
             llama_sampler_chain_add(chain, llama_sampler_init_temp(parameters.temperature))
             llama_sampler_chain_add(chain, llama_sampler_init_top_k(parameters.topK))
             llama_sampler_chain_add(chain, llama_sampler_init_top_p(parameters.topP, 1))
