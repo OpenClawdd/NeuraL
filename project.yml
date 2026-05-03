@@ -1,0 +1,38 @@
+name: NeuraL
+options:
+  bundleIdPrefix: com.neural
+  deploymentTarget:
+    iOS: "17.0"
+targets:
+  NeuraL:
+    type: application
+    platform: iOS
+    sources:
+      - path: NeuraL
+        excludes:
+          - "*.md"
+          - "*.sh"
+    entitlements:
+      path: Entitlements/NeuraL.entitlements
+    info:
+      path: NeuraL/Info.plist
+      properties:
+        CFBundleDisplayName: NeuraL
+        CFBundleName: NeuraL
+        CFBundleVersion: "1"
+        CFBundleShortVersionString: "1.0"
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    settings:
+      base:
+        SWIFT_OBJC_BRIDGING_HEADER: Bridging/BridgingHeader.h
+        OTHER_LDFLAGS:
+          - -framework Accelerate
+          - -framework Metal
+          - -framework MetalKit
+          - -framework Speech
+          - -framework AVFoundation
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "NeuraL uses the microphone to allow voice input."
+        INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: "NeuraL uses speech recognition to transcribe your voice."
