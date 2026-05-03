@@ -48,7 +48,7 @@ struct SystemStatusView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
             }
-            .background(aeroBackgroundGradient)
+            .background(Color(.systemGroupedBackground))
             .navigationTitle(NSLocalizedString("System", comment: "System tab title"))
             .navigationBarTitleDisplayMode(.large)
         }
@@ -61,14 +61,7 @@ struct SystemStatusView: View {
 
     private var aeroBackgroundGradient: some View {
         ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 224/255, green: 247/255, blue: 250/255),
-                    Color(red: 178/255, green: 235/255, blue: 242/255)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            Color(.systemGroupedBackground)
             .ignoresSafeArea()
         }
     }

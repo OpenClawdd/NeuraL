@@ -70,11 +70,11 @@ final class FrutigerAeroTheme {
 
     // MARK: - Gradients
 
-    /// The primary background gradient â€” soft blue to light cyan.
+    /// The primary app background.
     let backgroundGradient = LinearGradient(
         colors: [
-            Color(red: 224/255, green: 247/255, blue: 250/255),
-            Color(red: 178/255, green: 235/255, blue: 242/255)
+            Color(.systemGroupedBackground),
+            Color(.systemGroupedBackground)
         ],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
@@ -215,14 +215,7 @@ extension View {
     /// Apply Frutiger Aero background gradient.
     func aeroBackground() -> some View {
         ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 224/255, green: 247/255, blue: 250/255),
-                    Color(red: 178/255, green: 235/255, blue: 242/255)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            Color(.systemGroupedBackground)
             .ignoresSafeArea()
         }
     }

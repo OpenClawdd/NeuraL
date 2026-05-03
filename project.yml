@@ -14,6 +14,10 @@ targets:
           - "NeuraLUITests"
           - "**/*.md"
           - "**/*.sh"
+          - "Intelligence/DocumentImporter.swift"
+          - "Personalization/ConversationBranching.swift"
+          - "Personalization/ConversationExporter.swift"
+          - "Views/ConversationsView.swift"
     info:
       path: NeuraL/Info.plist
       properties:
@@ -21,6 +25,10 @@ targets:
         CFBundleName: NeuraL
         CFBundleVersion: "1"
         CFBundleShortVersionString: "1.0"
+        BGTaskSchedulerPermittedIdentifiers:
+          - com.neural.shadow-memory.refresh
+        UIBackgroundModes:
+          - fetch
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft
@@ -45,4 +53,6 @@ targets:
           - -framework MetalKit
           - -framework Speech
           - -framework AVFoundation
+          - -framework WebKit
+          - -framework BackgroundTasks
           - -lc++

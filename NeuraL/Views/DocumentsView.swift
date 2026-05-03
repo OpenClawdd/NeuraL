@@ -71,7 +71,7 @@ struct DocumentsView: View {
                     ContentUnavailableView(
                         "No Documents",
                         systemImage: "doc.text.magnifyingglass",
-                        description: Text("Import PDF, TXT, or Markdown files to enable document-based Q&A.")
+                        description: Text("Import TXT or Markdown files to enable document-based Q&A.")
                     )
                     .listRowBackground(Color.clear)
                 } else {
@@ -92,7 +92,7 @@ struct DocumentsView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Label("Supported Formats", systemImage: "doc.text")
                         .font(.subheadline.bold())
-                    Text("PDF, Plain Text (.txt), Markdown (.md)")
+                    Text("Plain Text (.txt), Markdown (.md)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
@@ -118,7 +118,6 @@ struct DocumentsView: View {
         .fileImporter(
             isPresented: $isImporting,
             allowedContentTypes: [
-                UTType(filenameExtension: "pdf") ?? .pdf,
                 UTType(filenameExtension: "txt") ?? .plainText,
                 UTType(filenameExtension: "md") ?? .plainText
             ],
