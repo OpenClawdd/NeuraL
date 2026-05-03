@@ -45,78 +45,39 @@ actor LlamaCppBridge {
         llama_decode(ctx, batch)
     }
 
-    func generateStream(promptTokens: [llama_token], params: GenerationParameters) -> AsyncStream<EmittedToken> {
-        AsyncStream { continuation in
-            guard let m = self.model, let ctx = self.context else {
-                continuation.finish()
-                return
-            }
-            self.processPrompt(tokens: promptTokens)
+    func generateSync(promptTokens: [llama_token], params: GenerationParameters) -> [EmittedToken] {
+        guard let m = model, let ctx = context else { return [] }
 
-            let vocab = llama_model_get_vocab(m)
-            let sparams = llama_sampler_chain_params()
-            let chain = llama_sampler_chain_init(sparams)
-            llama_sampler_chain_add(chain, llama_sampler_init_temp(params.temperature))
-            llama_sampler_chain_add(chain, llama_sampler_init_top_k(params.topK))
-            llama_sampler_chain_add(chain, llama_sampler_init_top_p(params.topP, 1))
-            if let seed = params.seed {
-                llama_sampler_chain_add(chain, llama_sampler_init_dist(UInt32(seed)))
-            }
+        processPrompt(tokens: promptTokens)
 
-            var count = 0
-            let start = Date()
-            for _ in 0..<params.maxTokens {
-                let token = llama_sampler_sample(chain, ctx, -1)
-                if llama_vocab_is_eog(vocab, token) {
-                    continuation.yield(EmittedToken(text: "", tokenID: token, isEndOfGeneration: true, cumulativeTokenCount: count, elapsedSeconds: Date().timeIntervalSince(start), probability: 1))
-                    break
-                }
-                let str = String(cString: llama_token_to_piece(ctx, token, false))
-                continuation.yield(EmittedToken(text: str, tokenID: token, isEndOfGeneration: false, cumulativeTokenCount: count, elapsedSeconds: Date().timeIntervalSince(start), probability: 1))
-                var one = [token]
-                let batch = llama_batch_get_one(&one, 1)
-                llama_decode(ctx, batch)
-                count += 1
-            }
-            llama_sampler_free(chain)
-            continuation.finish()
+        let vocab = llama_model_get_vocab(m)
+        let sparams = llama_sampler_chain_params()
+        let chain = llama_sampler_chain_init(sparams)
+        llama_sampler_chain_add(chain, llama_sampler_init_temp(params.temperature))
+        llama_sampler_chain_add(chain, llama_sampler_init_top_k(params.topK))
+        llama_sampler_chain_add(chain, llama_sampler_init_top_p(params.topP, 1))
+        if let seed = params.seed {
+            llama_sampler_chain_add(chain, llama_sampler_init_dist(UInt32(seed)))
         }
-    }
 
-    func generateStreamFromExistingContext(parameters: GenerationParameters) -> AsyncStream<EmittedToken> {
-        AsyncStream { continuation in
-            guard let m = self.model, let ctx = self.context else {
-                continuation.finish()
-                return
-            }
-            let vocab = llama_model_get_vocab(m)
-            let sparams = llama_sampler_chain_params()
-            let chain = llama_sampler_chain_init(sparams)
-            llama_sampler_chain_add(chain, llama_sampler_init_temp(parameters.temperature))
-            llama_sampler_chain_add(chain, llama_sampler_init_top_k(parameters.topK))
-            llama_sampler_chain_add(chain, llama_sampler_init_top_p(parameters.topP, 1))
-            if let seed = parameters.seed {
-                llama_sampler_chain_add(chain, llama_sampler_init_dist(UInt32(seed)))
-            }
+        var result: [EmittedToken] = []
+        var count = 0
+        let start = Date()
 
-            var count = 0
-            let start = Date()
-            for _ in 0..<parameters.maxTokens {
-                let token = llama_sampler_sample(chain, ctx, -1)
-                if llama_vocab_is_eog(vocab, token) {
-                    continuation.yield(EmittedToken(text: "", tokenID: token, isEndOfGeneration: true, cumulativeTokenCount: count, elapsedSeconds: Date().timeIntervalSince(start), probability: 1))
-                    break
-                }
-                let str = String(cString: llama_token_to_piece(ctx, token, false))
-                continuation.yield(EmittedToken(text: str, tokenID: token, isEndOfGeneration: false, cumulativeTokenCount: count, elapsedSeconds: Date().timeIntervalSince(start), probability: 1))
-                var one = [token]
-                let batch = llama_batch_get_one(&one, 1)
-                llama_decode(ctx, batch)
-                count += 1
-            }
-            llama_sampler_free(chain)
-            continuation.finish()
+        for _ in 0..<params.maxTokens {
+            let token = llama_sampler_sample(chain, ctx, -1)
+            let isEog = llama_vocab_is_eog(vocab, token)
+            let text = isEog ? "" : String(cString: llama_token_to_piece(ctx, token, false))
+            result.append(EmittedToken(text: text, tokenID: token, isEndOfGeneration: isEog, cumulativeTokenCount: count, elapsedSeconds: Date().timeIntervalSince(start), probability: 1))
+            if isEog { break }
+            var one = [token]
+            let batch = llama_batch_get_one(&one, 1)
+            llama_decode(ctx, batch)
+            count += 1
         }
+
+        llama_sampler_free(chain)
+        return result
     }
 
     func unloadModel() {

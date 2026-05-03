@@ -11,30 +11,12 @@ final class InferenceOrchestrator: InferenceEngine {
         loadedModelMetadata = ModelMetadata()
     }
 
-    func generate(promptTokens: [Int32], parameters: GenerationParameters) -> AsyncStream<EmittedToken> {
-        let bridgeRef = bridge
-        return AsyncStream { continuation in
-            Task {
-                let stream = await bridgeRef.generateStream(promptTokens: promptTokens, params: parameters)
-                for await token in stream {
-                    continuation.yield(token)
-                }
-                continuation.finish()
-            }
-        }
+    func generate(promptTokens: [Int32], parameters: GenerationParameters) async -> [EmittedToken] {
+        await bridge.generateSync(promptTokens: promptTokens, params: parameters)
     }
 
-    func generateFromExistingContext(parameters: GenerationParameters) -> AsyncStream<EmittedToken> {
-        let bridgeRef = bridge
-        return AsyncStream { continuation in
-            Task {
-                let stream = await bridgeRef.generateStreamFromExistingContext(parameters: parameters)
-                for await token in stream {
-                    continuation.yield(token)
-                }
-                continuation.finish()
-            }
-        }
+    func generateFromExistingContext(parameters: GenerationParameters) async -> [EmittedToken] {
+        await bridge.generateSync(promptTokens: [], params: parameters)
     }
 
     func unloadModel() {
