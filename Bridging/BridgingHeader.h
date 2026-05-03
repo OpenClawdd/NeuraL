@@ -28,7 +28,7 @@
 /// Returns the build timestamp of the linked llama.cpp library.
 /// This is useful for version-gating features at runtime.
 static inline const char * ondevice_llama_build_target(void) {
-    return LLAMA_BUILD_TARGET;
+    return "iOS";
 }
 
 /// Convenience: compute the number of bytes required for a KV cache
