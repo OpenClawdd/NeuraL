@@ -44,18 +44,10 @@ targets:
           - $(PROJECT_DIR)/build/llama
         OTHER_LDFLAGS:
           - $(inherited)
-          
           - -lllama
           - -framework Accelerate
           - -framework Metal
           - -framework MetalKit
           - -framework Speech
           - -framework AVFoundation
-      - framework: Accelerate.framework
-      - framework: Metal.framework
-      - framework: MetalKit.framework
-      - framework: Speech.framework
-      - framework: AVFoundation.framework
-      - sdk: libc++.tbd
-
-
+          - -lc++
