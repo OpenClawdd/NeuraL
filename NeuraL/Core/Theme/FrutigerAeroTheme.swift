@@ -1,8 +1,8 @@
-//
+﻿//
 //  FrutigerAeroTheme.swift
 //  NeuraL
 //
-//  Frutiger Aero Theme — Glassy, Glossy, Vibrant, Translucent
+//  Frutiger Aero Theme â€” Glassy, Glossy, Vibrant, Translucent
 //
 //  This theme provides the visual foundation for the Frutiger Aero aesthetic:
 //  - Soft blues, cyan, teal, white, translucent overlays
@@ -70,7 +70,7 @@ final class FrutigerAeroTheme {
 
     // MARK: - Gradients
 
-    /// The primary background gradient — soft blue to light cyan.
+    /// The primary background gradient â€” soft blue to light cyan.
     let backgroundGradient = LinearGradient(
         colors: [
             Color(red: 224/255, green: 247/255, blue: 250/255),
@@ -90,7 +90,7 @@ final class FrutigerAeroTheme {
         endPoint: .bottomTrailing
     )
 
-    /// Gloss highlight overlay — white-to-transparent, top to center.
+    /// Gloss highlight overlay â€” white-to-transparent, top to center.
     let glossHighlight = LinearGradient(
         colors: [.white.opacity(0.6), .white.opacity(0.0)],
         startPoint: .top,
@@ -104,7 +104,7 @@ final class FrutigerAeroTheme {
         endPoint: .center
     )
 
-    /// Button gradient fill — neon blue to teal.
+    /// Button gradient fill â€” neon blue to teal.
     let buttonGradient = LinearGradient(
         colors: [
             Color(red: 0/255, green: 180/255, blue: 216/255),
@@ -154,7 +154,7 @@ final class FrutigerAeroTheme {
 
 /// Environment key for injecting FrutigerAeroTheme into the SwiftUI environment.
 struct FrutigerAeroThemeKey: EnvironmentKey {
-    static let defaultValue = FrutigerAeroTheme.shared
+    nonisolated static let defaultValue = FrutigerAeroTheme.shared
 }
 
 extension EnvironmentValues {
@@ -344,3 +344,4 @@ struct AeroProgressStyle: ProgressViewStyle {
         }
     }
 }
+

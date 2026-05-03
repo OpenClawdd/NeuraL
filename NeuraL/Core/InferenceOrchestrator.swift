@@ -2,7 +2,7 @@
 
 final class InferenceOrchestrator: InferenceEngine {
     private let bridge = LlamaCppBridge()
-    var loadedModelMetadata: ModelMetadata?
+    nonisolated var loadedModelMetadata: ModelMetadata?
     var maxContextLength: Int = 0
 
     func loadModel(path: String, config: ModelLoadConfiguration) async throws {
@@ -23,3 +23,4 @@ final class InferenceOrchestrator: InferenceEngine {
         Task { await bridge.unloadModel() }
     }
 }
+

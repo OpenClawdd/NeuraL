@@ -31,7 +31,14 @@ class ChatState: ObservableObject {
         }
     }
 
+    var modelMetadata: ModelMetadata? { nil }
+    var engineState: String { "idle" }
+    var contextTokensUsed: Int { 0 }
+    func ragDocuments() async -> [UUID] { [] }
+    func importDocument(at url: URL) async throws {}
+    func removeRAGDocument(id: UUID) async {}
     func setSystemPrompt(_ prompt: String) {
         conversation.messages[0] = ChatMessage.systemPrompt(prompt)
     }
 }
+
