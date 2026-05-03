@@ -8,7 +8,7 @@ jobs:
     runs-on: macos-14
 
     steps:
-      - name: Checkout code
+      - name: Checkout code (with submodules)
         uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -27,6 +27,7 @@ jobs:
             -DLLAMA_METAL=ON \
             -DLLAMA_ACCELERATE=ON
           cmake --build . --config Release -j$(sysctl -n hw.logicalcpu)
+
           mkdir -p ../../build/llama
           cp libllama.a libggml.a ../../build/llama/
           cp -R ../include ../../build/llama/
