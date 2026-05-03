@@ -11,6 +11,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
       - name: Build unsigned IPA
         run: |
           xcodebuild -project NeuraL.xcodeproj \
