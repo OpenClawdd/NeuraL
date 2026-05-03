@@ -55,7 +55,7 @@ actor LlamaCppBridge {
 
             let vocab = llama_model_get_vocab(m)
             var sparams = llama_sampler_chain_params()
-            let chain = llama_sampler_chain_init(&sparams)
+            let chain = withUnsafeMutablePointer(to: &sparams) { llama_sampler_chain_init($0) }
             llama_sampler_chain_add(chain, llama_sampler_init_temp(params.temperature))
             llama_sampler_chain_add(chain, llama_sampler_init_top_k(params.topK))
             llama_sampler_chain_add(chain, llama_sampler_init_top_p(params.topP, 1))
@@ -91,7 +91,7 @@ actor LlamaCppBridge {
             }
             let vocab = llama_model_get_vocab(m)
             var sparams = llama_sampler_chain_params()
-            let chain = llama_sampler_chain_init(&sparams)
+            let chain = withUnsafeMutablePointer(to: &sparams) { llama_sampler_chain_init($0) }
             llama_sampler_chain_add(chain, llama_sampler_init_temp(parameters.temperature))
             llama_sampler_chain_add(chain, llama_sampler_init_top_k(parameters.topK))
             llama_sampler_chain_add(chain, llama_sampler_init_top_p(parameters.topP, 1))
