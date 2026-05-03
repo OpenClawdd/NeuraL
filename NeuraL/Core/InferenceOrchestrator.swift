@@ -1,20 +1,17 @@
 import Foundation
-actor InferenceOrchestrator: InferenceEngine     case modelNotFound
-e = LlamaCppBridge()
-    var loadedModelMetadata: ModelMetadata? = nil
+actor InferenceOrchestrator: InferenceEngine {
+    private let bridge = LlamaCppBridge()
+    var loadedModelMetadata: ModelMetadata?
     var maxContextLength: Int { Int(bridge.maxContextLength) }
 
     func loadModel(path: String, config: ModelLoadConfiguration) async throws {
-        try await bridge.loadModel(path: path, config: config)
-        loadedModelMetadata = bridge.getModelMetadata()
+        try bridge.loadModel(path: path, config: config)
     }
-
     func generate(promptTokens: [Int32], parameters: GenerationParameters) -> AsyncThrowingStream<EmittedToken, Error> {
-        bridge.generateStream(promp    func generateFromExistingContext(parameters: GenerationParameteFromExistingContext(parameters: GenerationParameters) -> AsyncThrowingStream<EmittedToken, Error> {
+        bridge.generateStream(promptTokens: promptTokens, params: parameters)
+    }
+    func generateFromExistingContext(parameters: GenerationParameters) -> AsyncThrowingStream<EmittedToken, Error> {
         bridge.generateStreamFromExistingContext(parameters: parameters)
     }
-
-    func resetContext() { bridge.resetContext() }
     func unloadModel() { bridge.unloadModel() }
-    func memoryStatistics() -> [String: Any] { bridge.memoryStatistics() }
 }
