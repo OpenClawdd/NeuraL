@@ -28,11 +28,26 @@ targets:
     settings:
       base:
         SWIFT_OBJC_BRIDGING_HEADER: Bridging/BridgingHeader.h
+        HEADER_SEARCH_PATHS:
+          - $(inherited)
+          - $(PROJECT_DIR)/llama.cpp/include
+          - $(PROJECT_DIR)/llama.cpp/ggml/include
+        LIBRARY_SEARCH_PATHS:
+          - $(inherited)
+          - $(PROJECT_DIR)/build/llama
         OTHER_LDFLAGS:
+          - $(inherited)
+          - -lggml
+          - -lllama
           - -framework Accelerate
           - -framework Metal
           - -framework MetalKit
           - -framework Speech
           - -framework AVFoundation
-        INFOPLIST_KEY_NSMicrophoneUsageDescription: "NeuraL uses the microphone to allow voice input."
-        INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: "NeuraL uses speech recognition to transcribe your voice."
+    dependencies:
+      - framework: Accelerate.framework
+      - framework: Metal.framework
+      - framework: MetalKit.framework
+      - framework: Speech.framework
+      - framework: AVFoundation.framework
+      - sdk: libc++.tbd
