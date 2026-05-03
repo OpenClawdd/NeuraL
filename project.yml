@@ -1,4 +1,4 @@
-name: NeuraL
+﻿name: NeuraL
 options:
   bundleIdPrefix: com.neural
   deploymentTarget:
@@ -44,7 +44,7 @@ targets:
           - $(PROJECT_DIR)/build/llama
         OTHER_LDFLAGS:
           - $(inherited)
-          - -lggml
+          
           - -lllama
           - -framework Accelerate
           - -framework Metal
@@ -58,3 +58,4 @@ targets:
       - framework: Speech.framework
       - framework: AVFoundation.framework
       - sdk: libc++.tbd
+
