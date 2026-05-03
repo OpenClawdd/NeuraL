@@ -222,7 +222,7 @@ final class SpeechSynthesizer: NSObject, ObservableObject, AVSpeechSynthesizerDe
             utterance.voice = AVSpeechSynthesisVoice(language: language)
         } else {
             // Auto-detect language from text
-            utterance.voice = AVSpeechSynthesisVoice.currentLanguageVoice()
+            utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
         }
 
         speakingState = .speaking(progress: 0)

@@ -98,7 +98,7 @@ struct ModelsView: View {
                 }
                 Button("Delete", role: .destructive) {
                     if let url = modelToDelete {
-                        let entry = CatalogEntry(
+                        let entry = CatalogEntry(supportsVision: false, mmprojFilename: nil, mmprojDownloadURL: nil, mmprojDownloadSizeBytes: 0,
                             id: url.lastPathComponent,
                             displayName: url.deletingPathExtension().lastPathComponent,
                             family: "Imported",

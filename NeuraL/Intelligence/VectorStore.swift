@@ -143,7 +143,7 @@ actor VectorStore {
         chunks.append(contentsOf: newChunks)
         documents[document.id] = document
         persist()
-        logger.info("Added \(newChunks.count) chunks from '\(document.filename)'. Total chunks: \(chunks.count)")
+        logger.info("Added \(newChunks.count) chunks from '\(document.filename)'. Total chunks: \(self.chunks.count)")
     }
 
     // MARK: - Searching
@@ -192,7 +192,7 @@ actor VectorStore {
         chunks.removeAll { $0.documentId == id }
         documents.removeValue(forKey: id)
         persist()
-        logger.info("Removed document \(id). Remaining chunks: \(chunks.count)")
+        logger.info("Removed document \(id). Remaining chunks: \(self.chunks.count)")
     }
 
     /// Get all imported documents.
@@ -201,7 +201,7 @@ actor VectorStore {
     }
 
     /// Get chunk count.
-    var totalChunks: Int { chunks.count }
+    var totalChunks: Int { self.chunks.count }
 
     /// Get total estimated tokens across all chunks.
     var totalEstimatedTokens: Int {

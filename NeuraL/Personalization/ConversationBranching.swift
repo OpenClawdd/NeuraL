@@ -1,3 +1,4 @@
+import SwiftUI
 //
 //  ConversationBranching.swift
 //  NeuraL
@@ -88,7 +89,7 @@ extension ChatMessage {
 
 /// A ChatMessage wrapper that includes emoji reactions.
 /// Reactions are stored separately to keep ChatMessage Codable-stable.
-struct ChatMessageWithReactions: Identifiable, Equatable {
+struct ChatMessageWithReactions: Identifiable {
     let message: ChatMessage
     var reactions: [MessageReaction]
 

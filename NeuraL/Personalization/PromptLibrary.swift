@@ -405,7 +405,7 @@ struct DefaultPromptPicker: View {
             get: { library.defaultPromptID },
             set: { library.setDefault($0) }
         )) {
-            Text("App Default").tag(UUID?.nil)
+            Text("App Default").tag(nil as UUID?)
             ForEach(library.prompts) { prompt in
                 Text(prompt.name).tag(Optional(prompt.id))
             }

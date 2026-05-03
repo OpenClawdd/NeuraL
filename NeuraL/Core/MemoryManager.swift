@@ -240,7 +240,7 @@ actor MemoryManager {
         // On .serious or .critical thermal state, GPU offloading may cause
         // thermal throttling that actually SLOWS generation. In that case,
         // CPU-only with fewer threads is faster overall.
-        let gpuRecommended = thermal < .serious
+        let gpuRecommended = thermal.rawValue < ProcessInfo.ThermalState.serious.rawValue
 
         // Step 10: Thread count recommendation based on thermal state
         let threads: Int
@@ -377,7 +377,7 @@ actor MemoryManager {
     /// At .critical, GPU offloading generates too much heat and should be
     /// dropped in favor of CPU-only inference (which is slower but cooler).
     var shouldDisableGPUForThermal: Bool {
-        currentThermalState >= .critical
+        currentThermalState.rawValue >= ProcessInfo.ThermalState.critical.rawValue
     }
 
     // MARK: - Memory Pressure Monitoring

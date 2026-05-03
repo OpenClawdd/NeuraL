@@ -67,7 +67,7 @@ struct CalculatorTool: NeuraLTool {
             let expr = NSExpression(format: filteredStr)
             if let result = expr.expressionValue(with: nil, context: nil) {
                 let number = NSNumber(value: 0)
-                if result.compare(number) == .orderedSame && !(result is Bool) {
+                if let resultNum = result as? NSNumber, resultNum.compare(number) == .orderedSame && !(result is Bool) {
                     // It's a number
                     let doubleValue = (result as? NSNumber)?.doubleValue ?? 0
                     if doubleValue == floor(doubleValue) && abs(doubleValue) < Double(Int.max) {

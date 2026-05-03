@@ -309,7 +309,7 @@ struct ThinkingBubbleView: View {
                 RoundedRectangle(cornerRadius: 16)
                     .strokeBorder(
                         AngularGradient(
-                            colors: phase.gradientColors,
+                            colors: phase.gradientColors, center: .center,
                             angle: .degrees(shimmerAngle)
                         ),
                         lineWidth: 1.5

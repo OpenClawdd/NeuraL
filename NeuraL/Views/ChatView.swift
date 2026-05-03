@@ -60,7 +60,7 @@ struct ChatView: View {
     @State private var stopPressed = false
     @State private var goToModelsPressed = false
 
-    init(chatState: ChatState = ChatState(), selectedTab: Binding<AppTab> = .constant(.chat)) {
+    @MainActor init(chatState: ChatState = ChatState(), selectedTab: Binding<AppTab> = .constant(.chat)) {
         self._chatState = State(initialValue: chatState)
         self._selectedTab = selectedTab
     }
@@ -158,7 +158,7 @@ struct ChatView: View {
             // Phase 7.1: Apply theme
             .preferredColorScheme(ThemeManager.shared.preferredColorScheme)
             .tint(ThemeManager.shared.accentColorValue)
-            .toolbar {
+            .toolbar(id: "main") {
                 ToolbarItemGroup(placement: .topBarLeading) {
                     Button {
                         FrutigerAeroTheme.shared.lightHaptic()
@@ -195,7 +195,7 @@ struct ChatView: View {
                     }
                     .navigationTitle("Load Model")
                     .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
+                    .toolbar(id: "main") {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Done") { showModelLoader = false }
                         }
@@ -287,7 +287,7 @@ struct ChatView: View {
         .clipShape(Capsule())
         .overlay(
             Capsule()
-                .strokeBorder(
+                .stroke(
                     chatState.contextUtilization > 0.8
                         ? FrutigerAeroTheme.shared.neonBlue.opacity(0.6)
                         : Color.white.opacity(0.2),
@@ -365,7 +365,7 @@ struct ChatView: View {
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay(
             RoundedRectangle(cornerRadius: 10)
-                .strokeBorder(.white.opacity(0.2), lineWidth: 0.5)
+                .stroke(.white.opacity(0.2), lineWidth: 0.5)
         )
         .shadow(color: FrutigerAeroTheme.shared.buttonShadow, radius: 4, x: 0, y: 2)
         .padding(.horizontal, 12)
@@ -407,7 +407,7 @@ struct ChatView: View {
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay(
             RoundedRectangle(cornerRadius: 10)
-                .strokeBorder(.white.opacity(0.2), lineWidth: 0.5)
+                .stroke(.white.opacity(0.2), lineWidth: 0.5)
         )
         .shadow(color: FrutigerAeroTheme.shared.buttonShadow, radius: 4, x: 0, y: 2)
         .padding(.horizontal, 12)
@@ -707,7 +707,7 @@ struct ChatView: View {
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay(
             RoundedRectangle(cornerRadius: 10)
-                .strokeBorder(.white.opacity(0.2), lineWidth: 0.5)
+                .stroke(.white.opacity(0.2), lineWidth: 0.5)
         )
         .shadow(color: FrutigerAeroTheme.shared.buttonShadow, radius: 4, x: 0, y: 2)
         .padding(.horizontal, 12)
@@ -802,7 +802,7 @@ struct ChatView: View {
                             )
                             .overlay(
                                 Circle()
-                                    .strokeBorder(.white.opacity(0.3), lineWidth: 0.5)
+                                    .stroke(.white.opacity(0.3), lineWidth: 0.5)
                             )
                             .shadow(color: .red.opacity(0.3), radius: 4, x: 0, y: 2)
                     }
@@ -842,7 +842,7 @@ struct ChatView: View {
                             )
                             .overlay(
                                 Circle()
-                                    .strokeBorder(.white.opacity(0.3), lineWidth: 0.5)
+                                    .stroke(.white.opacity(0.3), lineWidth: 0.5)
                             )
                             .shadow(
                                 color: canSend
@@ -987,7 +987,7 @@ struct FrutigerAeroButtonStyle: ButtonStyle {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 20)
-                    .strokeBorder(.white.opacity(0.3), lineWidth: 0.5)
+                    .stroke(.white.opacity(0.3), lineWidth: 0.5)
             )
             .shadow(
                 color: FrutigerAeroTheme.shared.neonBlue.opacity(0.3),
@@ -1023,7 +1023,7 @@ struct SystemMessageBubble: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
-                        .strokeBorder(.white.opacity(0.2), lineWidth: 0.5)
+                        .stroke(.white.opacity(0.2), lineWidth: 0.5)
                 )
                 .shadow(color: FrutigerAeroTheme.shared.buttonShadow, radius: 4, x: 0, y: 2)
 
@@ -1131,7 +1131,7 @@ struct MessageBubbleView: View {
                 // Border
                 .overlay(
                     BubbleShape(isUser: style == .user)
-                        .strokeBorder(.white.opacity(0.25), lineWidth: 0.5)
+                        .stroke(.white.opacity(0.25), lineWidth: 0.5)
                 )
                 // Soft drop shadow
                 .shadow(
@@ -1229,7 +1229,7 @@ struct StreamingBubbleView: View {
                     )
                     .overlay(
                         BubbleShape(isUser: false)
-                            .strokeBorder(.white.opacity(0.2), lineWidth: 0.5)
+                            .stroke(.white.opacity(0.2), lineWidth: 0.5)
                     )
                     .shadow(color: FrutigerAeroTheme.shared.buttonShadow, radius: 4, x: 0, y: 2)
                     .frame(maxWidth: 300, alignment: .leading)
@@ -1383,7 +1383,7 @@ struct ModelLoaderSheet: View {
             }
             .navigationTitle("Load Model")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
+            .toolbar(id: "main") {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
@@ -1469,7 +1469,7 @@ struct MicButton: View {
                 )
                 .overlay(
                     Circle()
-                        .strokeBorder(.white.opacity(0.25), lineWidth: 0.5)
+                        .stroke(.white.opacity(0.25), lineWidth: 0.5)
                 )
                 .shadow(
                     color: isListening
@@ -1517,7 +1517,7 @@ struct FunctionCallIndicator: View {
                     .clipShape(Capsule())
                     .overlay(
                         Capsule()
-                            .strokeBorder(.white.opacity(0.2), lineWidth: 0.5)
+                            .stroke(.white.opacity(0.2), lineWidth: 0.5)
                     )
                 }
             }
@@ -1560,7 +1560,7 @@ struct RAGSourcesIndicator: View {
                     .clipShape(Capsule())
                     .overlay(
                         Capsule()
-                            .strokeBorder(.white.opacity(0.2), lineWidth: 0.5)
+                            .stroke(.white.opacity(0.2), lineWidth: 0.5)
                     )
                 }
             }
