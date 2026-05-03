@@ -158,7 +158,7 @@ struct ChatView: View {
             // Phase 7.1: Apply theme
             .preferredColorScheme(ThemeManager.shared.preferredColorScheme)
             .tint(ThemeManager.shared.accentColorValue)
-            .toolbar(id: "main") {
+            .toolbar {
                 ToolbarItemGroup(placement: .topBarLeading) {
                     Button {
                         FrutigerAeroTheme.shared.lightHaptic()
@@ -195,7 +195,7 @@ struct ChatView: View {
                     }
                     .navigationTitle("Load Model")
                     .navigationBarTitleDisplayMode(.inline)
-                    .toolbar(id: "main") {
+                    .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Done") { showModelLoader = false }
                         }
@@ -1383,7 +1383,7 @@ struct ModelLoaderSheet: View {
             }
             .navigationTitle("Load Model")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(id: "main") {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }

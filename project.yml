@@ -8,12 +8,17 @@ targets:
     type: application
     platform: iOS
     sources:
-      - path: NeuraL
-        excludes:
-          - "*.md"
-          - "*.sh"
-    entitlements:
-      path: Entitlements/NeuraL.entitlements
+      - path: NeuraL/NeuraLApp.swift
+      - path: NeuraL/Views/ChatView.swift
+      - path: NeuraL/Views/ModelsView.swift
+      - path: NeuraL/Models/ChatMessage.s
+# 9. Fix ModelsView CatalogEntry call
+sed -i '' 's/CatalogEntry(suppoaL/State/ChatState.swift
+      - path: NeuraL/Core/LlamaCppBridge.swift
+      - path: NeuraL/Core/InferenceEngine.swift
+      - path: NeuraL/Core/InferenceOrchestrator.swift
+      - path: NeuraL/Core/ModelLoader.swift
+      - path: NeuraL/Core/MemoryManager.swift
     info:
       path: NeuraL/Info.plist
       properties:
@@ -23,8 +28,10 @@ targets:
         CFBundleShortVersionString: "1.0"
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
-          - UIInterfaceOrientationLandscapeLeft
+      cat > project.yml <<'EOationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
+    entitlements:
+      path: Entitlements/NeuraL.entitlements
     settings:
       base:
         SWIFT_OBJC_BRIDGING_HEADER: Bridging/BridgingHeader.h
@@ -39,8 +46,7 @@ targets:
           - $(inherited)
           - -lggml
           - -lllama
-          - -framework Accelerate
-          - -framework Metal
+          - -framework       - path: Neura  - -framework Metal
           - -framework MetalKit
           - -framework Speech
           - -framework AVFoundation
