@@ -8,17 +8,12 @@ targets:
     type: application
     platform: iOS
     sources:
-      - path: NeuraL/NeuraLApp.swift
-      - path: NeuraL/Views/ChatView.swift
-      - path: NeuraL/Views/ModelsView.swift
-      - path: NeuraL/Models/ChatMessage.swift
-      - path: NeuraL/Models/ModelCatalog.swift
-      - path: NeuraL/State/ChatState.swift
-      - path: NeuraL/Core/LlamaCppBridge.swift
-      - path: NeuraL/Core/InferenceEngine.swift
-      - path: NeuraL/Core/InferenceOrchestrator.swift
-      - path: NeuraL/Core/ModelLoader.swift
-      - path: NeuraL/Core/MemoryManager.swift
+      - path: NeuraL
+        excludes:
+          - "NeuraLTests"
+          - "NeuraLUITests"
+          - "**/*.md"
+          - "**/*.sh"
     info:
       path: NeuraL/Info.plist
       properties:
