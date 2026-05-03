@@ -1,4 +1,4 @@
-import Foundation
+﻿import Foundation
 
 public struct ModelMetadata: Sendable {
     public let architecture: String = ""
@@ -46,7 +46,7 @@ public protocol InferenceEngine: Sendable {
     var loadedModelMetadata: ModelMetadata? { get }
     var maxContextLength: Int { get }
     func loadModel(path: String, config: ModelLoadConfiguration) async throws
-    func generate(promptTokens: [Int32], parameters: GenerationParameters) -> AsyncThrowingStream<EmittedToken, Error>
-    func generateFromExistingContext(parameters: GenerationParameters) -> AsyncThrowingStream<EmittedToken, Error>
+    func generate(promptTokens: [Int32], parameters: GenerationParameters) -> AsyncStream<EmittedToken>
+    func generateFromExistingContext(parameters: GenerationParameters) -> AsyncStream<EmittedToken>
     func unloadModel()
 }

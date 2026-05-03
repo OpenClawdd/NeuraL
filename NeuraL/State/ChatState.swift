@@ -1,4 +1,4 @@
-import SwiftUI
+﻿import SwiftUI
 
 @MainActor
 class ChatState: ObservableObject {
@@ -12,11 +12,17 @@ class ChatState: ObservableObject {
         messages.append(userMsg)
         isGenerating = true
         Task {
-            let stream = try! await orchestrator.generate(promptTokens: [0], parameters: .default)
+            let stream = orchestrator.generate(promptTokens: [0], parameters: .default)
             var response = ""
-            for try await token in stream { response += token.text }
+            for await token in stream {
+                response += token.text
+            }
             messages.append(ChatMessage.assistantMessage(response))
             isGenerating = false
         }
+    }
+
+    func setSystemPrompt(_ prompt: String) {
+        conversation.messages[0] = ChatMessage.systemPrompt(prompt)
     }
 }

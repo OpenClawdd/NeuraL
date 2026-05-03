@@ -45,16 +45,17 @@ actor LlamaCppBridge {
         llama_decode(ctx, batch)
     }
 
-    func generateStream(promptTokens: [llama_token], params: GenerationParameters) -> AsyncThrowingStream<EmittedToken, Error> {
-        AsyncThrowingStream { continuation in
+    func generateStream(promptTokens: [llama_token], params: GenerationParameters) -> AsyncStream<EmittedToken> {
+        AsyncStream { continuation in
             guard let m = self.model, let ctx = self.context else {
-                continuation.finish(throwing: InferenceError.contextInvalidated)
+                continuation.finish()
                 return
             }
             self.processPrompt(tokens: promptTokens)
 
             let vocab = llama_model_get_vocab(m)
-            let sparams = llama_sampler_chain_params(); let chain = llama_sampler_chain_init(sparams)
+            let sparams = llama_sampler_chain_params()
+            let chain = llama_sampler_chain_init(sparams)
             llama_sampler_chain_add(chain, llama_sampler_init_temp(params.temperature))
             llama_sampler_chain_add(chain, llama_sampler_init_top_k(params.topK))
             llama_sampler_chain_add(chain, llama_sampler_init_top_p(params.topP, 1))
@@ -82,14 +83,15 @@ actor LlamaCppBridge {
         }
     }
 
-    func generateStreamFromExistingContext(parameters: GenerationParameters) -> AsyncThrowingStream<EmittedToken, Error> {
-        AsyncThrowingStream { continuation in
+    func generateStreamFromExistingContext(parameters: GenerationParameters) -> AsyncStream<EmittedToken> {
+        AsyncStream { continuation in
             guard let m = self.model, let ctx = self.context else {
-                continuation.finish(throwing: InferenceError.contextInvalidated)
+                continuation.finish()
                 return
             }
             let vocab = llama_model_get_vocab(m)
-            let sparams = llama_sampler_chain_params(); let chain = llama_sampler_chain_init(sparams)
+            let sparams = llama_sampler_chain_params()
+            let chain = llama_sampler_chain_init(sparams)
             llama_sampler_chain_add(chain, llama_sampler_init_temp(parameters.temperature))
             llama_sampler_chain_add(chain, llama_sampler_init_top_k(parameters.topK))
             llama_sampler_chain_add(chain, llama_sampler_init_top_p(parameters.topP, 1))
@@ -122,5 +124,3 @@ actor LlamaCppBridge {
         if let m = model { llama_model_free(m); model = nil }
     }
 }
-
-
