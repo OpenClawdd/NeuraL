@@ -11,9 +11,9 @@ targets:
       - path: NeuraL/NeuraLApp.swift
       - path: NeuraL/Views/ChatView.swift
       - path: NeuraL/Views/ModelsView.swift
-      - path: NeuraL/Models/ChatMessage.s
-# 9. Fix ModelsView CatalogEntry call
-sed -i '' 's/CatalogEntry(suppoaL/State/ChatState.swift
+      - path: NeuraL/Models/ChatMessage.swift
+      - path: NeuraL/Models/ModelCatalog.swift
+      - path: NeuraL/State/ChatState.swift
       - path: NeuraL/Core/LlamaCppBridge.swift
       - path: NeuraL/Core/InferenceEngine.swift
       - path: NeuraL/Core/InferenceOrchestrator.swift
@@ -28,7 +28,7 @@ sed -i '' 's/CatalogEntry(suppoaL/State/ChatState.swift
         CFBundleShortVersionString: "1.0"
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
-      cat > project.yml <<'EOationLandscapeLeft
+          - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
     entitlements:
       path: Entitlements/NeuraL.entitlements
@@ -46,7 +46,8 @@ sed -i '' 's/CatalogEntry(suppoaL/State/ChatState.swift
           - $(inherited)
           - -lggml
           - -lllama
-          - -framework       - path: Neura  - -framework Metal
+          - -framework Accelerate
+          - -framework Metal
           - -framework MetalKit
           - -framework Speech
           - -framework AVFoundation
