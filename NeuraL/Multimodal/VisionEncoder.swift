@@ -238,10 +238,10 @@ actor VisionEncoder {
         }
 
         defer {
-            llava_image_embed_free(embed)
+            llava_image_embed_free(unsafeBitCast(embed, to: UnsafeMutablePointer<llava_image_embed>.self))
         }
 
-        let nImagePos = embed.pointee.n_image_pos
+        let nImagePos = unsafeBitCast(embed, to: UnsafeMutablePointer<llava_image_embed>.self).pointee.n_image_pos
         guard nImagePos > 0 else {
             throw VisionError.encodingFailed("Image encoding produced zero positions.")
         }
@@ -250,7 +250,7 @@ actor VisionEncoder {
         let totalFloats = Int(nImagePos) * embeddingDim
 
         var embeddingData = [Float](repeating: 0, count: totalFloats)
-        if let embedPtr = embed.pointee.embed {
+        if let embedPtr = unsafeBitCast(embed, to: UnsafeMutablePointer<llava_image_embed>.self).pointee.embed {
             for i in 0..<totalFloats {
                 embeddingData[i] = embedPtr[i]
             }

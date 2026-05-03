@@ -167,7 +167,7 @@ actor RAGPipeline {
     ///
     /// Simple heuristic: questions and document-related queries benefit from RAG;
     /// creative/generative tasks do not.
-    func shouldUseRAG(for query: String) -> Bool {
+    func shouldUseRAG(for query: String) async -> Bool {
         let queryLower = query.lowercased()
         let questionIndicators = ["what", "who", "when", "where", "how", "why", "which", "explain", "describe", "tell me about", "summarize", "define", "find", "search", "look up", "document", "file", "notes", "pdf", "article"]
         let creativeIndicators = ["write", "create", "generate", "compose", "imagine", "story", "poem", "code", "program"]
@@ -176,7 +176,7 @@ actor RAGPipeline {
         let isCreative = creativeIndicators.contains { queryLower.hasPrefix($0) }
 
         // Check if vector store has any documents
-        let chunkCount = await vectorStore.totalChunks
+        let chunkCount = await self.vectorStore.totalChunks
 
         return chunkCount > 0 && (isQuestion || !isCreative)
     }

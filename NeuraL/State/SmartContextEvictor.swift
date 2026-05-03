@@ -179,7 +179,7 @@ actor SmartContextEvictor {
             return nil
         }
 
-        logger.info("Eviction needed. Estimated \(estimatedTokens) tokens, budget \(effectiveBudget). Applying \(strategy) strategy.")
+//         logger.info("Eviction needed. Estimated \(estimatedTokens) tokens, budget \(effectiveBudget). Applying \(strategy) strategy.")
 
         return performEviction(
             conversation: conversation,

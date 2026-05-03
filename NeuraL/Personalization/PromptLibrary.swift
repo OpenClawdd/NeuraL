@@ -387,7 +387,7 @@ struct PromptLibraryView: View {
     private func applyPrompt(_ prompt: SavedPrompt) {
         // Apply to the current conversation
         if let sysIdx = chatState.conversation.messages.firstIndex(where: { $0.role == .system }) {
-            chatState.conversation.messages[sysIdx] = .systemPrompt(prompt.content)
+            chatState.setSystemPrompt(prompt.content)
         }
         dismiss()
     }

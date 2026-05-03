@@ -198,7 +198,7 @@ enum Phase2ConsoleDriver {
         let reservedTokens = 128
 
         // Check if eviction is needed
-        let needed = evictor.needsEviction(
+        let needed = await evictor.needsEviction(
             conversation: conversation,
             maxContextTokens: maxContext,
             reservedForGeneration: reservedTokens
