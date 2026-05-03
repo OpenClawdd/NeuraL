@@ -13,6 +13,7 @@
 import Foundation
 import CoreGraphics
 import UIKit
+import os
 
 // MARK: - Image Attachment
 
@@ -104,7 +105,7 @@ struct VisionEncoderConfiguration: Sendable {
 
 // MARK: - Vision Encoder State
 
-enum VisionEncoderState: Sendable, CustomStringConvertible {
+enum VisionEncoderState: Sendable, Equatable, CustomStringConvertible {
     case idle
     case loading
     case ready
@@ -136,7 +137,7 @@ actor VisionEncoder {
     private var state: VisionEncoderState = .idle
     private var clipContext: OpaquePointer?
     private var configuration: VisionEncoderConfiguration?
-    private let logger = Foundation.Logger(subsystem: "com.neural.vision", category: "VisionEncoder")
+    private let logger = Logger(subsystem: "com.neural.vision", category: "VisionEncoder")
 
     var currentState: VisionEncoderState { state }
     var isReady: Bool { state.isReady }
@@ -145,7 +146,14 @@ actor VisionEncoder {
 
     /// Load a multimodal projector (.mmproj) file.
     func loadProjector(at url: URL, config: VisionEncoderConfiguration = .default) throws {
-        guard state == .idle || (case .error = state) else {
+        switch state {
+        case .idle, .error:
+            break
+        case .loading:
+            throw VisionError.invalidState("Cannot load projector while in \(state) state.")
+        case .ready:
+            return  // already loaded
+        case .encoding:
             throw VisionError.invalidState("Cannot load projector while in \(state) state.")
         }
 
@@ -214,7 +222,7 @@ actor VisionEncoder {
         let embed = imageData.withUnsafeBytes { dataPtr in
             guard let baseAddress = dataPtr.baseAddress else { return OpaquePointer(bitPattern: 0) }
             let bytes = baseAddress.assumingMemoryBound(to: UInt8.self)
-            return llava_image_embed_make_with_clip_ctx(
+            let result = llava_image_embed_make_with_clip_ctx(
                 clipCtx,
                 Int32(config.threadCount),
                 bytes,
@@ -222,6 +230,7 @@ actor VisionEncoder {
                 Int32(config.imageSize),
                 Int32(config.imageSize)
             )
+            return OpaquePointer(result)
         }
 
         guard let embed else {

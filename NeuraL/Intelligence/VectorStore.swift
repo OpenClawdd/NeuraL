@@ -23,6 +23,7 @@
 //
 
 import Foundation
+import os
 
 // MARK: - Document Chunk
 
@@ -95,7 +96,7 @@ actor VectorStore {
 
     private var chunks: [DocumentChunk] = []
     private var documents: [UUID: ImportedDocument] = [:]
-    private let logger = Foundation.Logger(subsystem: "com.neural.rag", category: "VectorStore")
+    private let logger = Logger(subsystem: "com.neural.rag", category: "VectorStore")
 
     // MARK: - Persistence
 
@@ -110,11 +111,11 @@ actor VectorStore {
         return dir
     }
 
-    private var chunksFileURL: URL {
+    nonisolated private var chunksFileURL: URL {
         Self.storeDirectory.appendingPathComponent("chunks.json")
     }
 
-    private var documentsFileURL: URL {
+    nonisolated private var documentsFileURL: URL {
         Self.storeDirectory.appendingPathComponent("documents.json")
     }
 
