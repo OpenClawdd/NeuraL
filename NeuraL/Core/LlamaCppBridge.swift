@@ -85,3 +85,4 @@ actor LlamaCppBridge {
         if let m = model { llama_model_free(m); model = nil }
     }
 }
+
