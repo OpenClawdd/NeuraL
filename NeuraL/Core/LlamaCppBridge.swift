@@ -1,6 +1,5 @@
 import Foundation
 import os
-import llama
 
 actor LlamaCppBridge {
     private var model: OpaquePointer?
