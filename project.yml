@@ -51,11 +51,11 @@ targets:
           - -framework MetalKit
           - -framework Speech
           - -framework AVFoundation
-    dependencies:
       - framework: Accelerate.framework
       - framework: Metal.framework
       - framework: MetalKit.framework
       - framework: Speech.framework
       - framework: AVFoundation.framework
       - sdk: libc++.tbd
+
 
