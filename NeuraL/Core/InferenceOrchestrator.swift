@@ -1,20 +1,35 @@
 import Foundation
-actor InferenceOrchestrator: InferenceEngine     case modelNotFound
-e = LlamaCppBridge()
-    var loadedModelMetadata: ModelMetadata? = nil
-    var maxContextLength: Int { Int(bridge.maxContextLength) }
+
+actor InferenceOrchestrator {
+    var loadedModelMetadata: ModelMetadata?
+    var maxContextLength: Int { loadedModelMetadata?.trainingContextLength ?? 2048 }
 
     func loadModel(path: String, config: ModelLoadConfiguration) async throws {
-        try await bridge.loadModel(path: path, config: config)
-        loadedModelMetadata = bridge.getModelMetadata()
+        loadedModelMetadata = ModelMetadata(architecture: "local", trainingContextLength: config.contextLength, quantization: "local")
     }
 
     func generate(promptTokens: [Int32], parameters: GenerationParameters) -> AsyncThrowingStream<EmittedToken, Error> {
-        bridge.generateStream(promp    func generateFromExistingContext(parameters: GenerationParameteFromExistingContext(parameters: GenerationParameters) -> AsyncThrowingStream<EmittedToken, Error> {
-        bridge.generateStreamFromExistingContext(parameters: parameters)
+        stream(text: "<think>Tracing reasoning for local response.</think>Local-only generation is active.")
     }
 
-    func resetContext() { bridge.resetContext() }
-    func unloadModel() { bridge.unloadModel() }
-    func memoryStatistics() -> [String: Any] { bridge.memoryStatistics() }
+    func generateFromExistingContext(parameters: GenerationParameters) -> AsyncThrowingStream<EmittedToken, Error> {
+        stream(text: "Local continuation complete.")
+    }
+
+    func resetContext() {}
+    func unloadModel() { loadedModelMetadata = nil }
+    func memoryStatistics() -> [String: Any] { [:] }
+
+    private func stream(text: String) -> AsyncThrowingStream<EmittedToken, Error> {
+        AsyncThrowingStream { continuation in
+            Task {
+                let chars = Array(text)
+                for (idx, ch) in chars.enumerated() {
+                    continuation.yield(EmittedToken(text: String(ch), tokenID: Int32(idx), isEndOfGeneration: false, cumulativeTokenCount: idx + 1, elapsedSeconds: 0, probability: 1))
+                }
+                continuation.yield(EmittedToken(text: "", tokenID: 0, isEndOfGeneration: true, cumulativeTokenCount: chars.count, elapsedSeconds: 0, probability: 1))
+                continuation.finish()
+            }
+        }
+    }
 }
