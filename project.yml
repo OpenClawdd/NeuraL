@@ -3,40 +3,28 @@ options:
   bundleIdPrefix: com.neural
   deploymentTarget:
     iOS: "17.0"
+
 targets:
   NeuraL:
     type: application
     platform: iOS
     sources:
-      - path: NeuraL/NeuraLApp.swift
-      - path: NeuraL/Views/ChatView.swift
-      - path: NeuraL/Views/ModelsView.swift
-      - path: NeuraL/Models/ChatMessage.s
-# 9. Fix ModelsView CatalogEntry call
-sed -i '' 's/CatalogEntry(suppoaL/State/ChatState.swift
-      - path: NeuraL/Core/LlamaCppBridge.swift
-      - path: NeuraL/Core/InferenceEngine.swift
-      - path: NeuraL/Core/InferenceOrchestrator.swift
-      - path: NeuraL/Core/ModelLoader.swift
-      - path: NeuraL/Core/MemoryManager.swift
+      - path: NeuraL
     info:
       path: NeuraL/Info.plist
-      properties:
-        CFBundleDisplayName: NeuraL
-        CFBundleName: NeuraL
-        CFBundleVersion: "1"
-        CFBundleShortVersionString: "1.0"
-        UISupportedInterfaceOrientations:
-          - UIInterfaceOrientationPortrait
-      cat > project.yml <<'EOationLandscapeLeft
-          - UIInterfaceOrientationLandscapeRight
     entitlements:
       path: Entitlements/NeuraL.entitlements
     settings:
       base:
         SWIFT_OBJC_BRIDGING_HEADER: Bridging/BridgingHeader.h
+        SWIFT_INCLUDE_PATHS:
+          - $(inherited)
+          - $(PROJECT_DIR)/Bridging
         HEADER_SEARCH_PATHS:
           - $(inherited)
+          - $(PROJECT_DIR)/Bridging
+          - $(PROJECT_DIR)/build/llama/include
+          - $(PROJECT_DIR)/build/llama/include/ggml
           - $(PROJECT_DIR)/llama.cpp/include
           - $(PROJECT_DIR)/llama.cpp/ggml/include
         LIBRARY_SEARCH_PATHS:
@@ -44,12 +32,15 @@ sed -i '' 's/CatalogEntry(suppoaL/State/ChatState.swift
           - $(PROJECT_DIR)/build/llama
         OTHER_LDFLAGS:
           - $(inherited)
-          - -lggml
           - -lllama
-          - -framework       - path: Neura  - -framework Metal
-          - -framework MetalKit
-          - -framework Speech
-          - -framework AVFoundation
+          - -lggml
+          - -lggml-base
+          - -lggml-cpu
+          - -lggml-metal
+          - -framework
+          - Metal
+          - -framework
+          - Foundation
     dependencies:
       - framework: Accelerate.framework
       - framework: Metal.framework
@@ -57,3 +48,19 @@ sed -i '' 's/CatalogEntry(suppoaL/State/ChatState.swift
       - framework: Speech.framework
       - framework: AVFoundation.framework
       - sdk: libc++.tbd
+
+  NeuraLTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: NeuraLTests
+    dependencies:
+      - target: NeuraL
+
+  NeuraLUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: NeuraLUITests
+    dependencies:
+      - target: NeuraL
