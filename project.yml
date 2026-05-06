@@ -17,6 +17,17 @@ targets:
     settings:
       base:
         SWIFT_OBJC_BRIDGING_HEADER: Bridging/BridgingHeader.h
+        HEADER_SEARCH_PATHS:
+          - $(inherited)
+          - $(PROJECT_DIR)/llama.cpp/include
+          - $(PROJECT_DIR)/llama.cpp/ggml/include
+        LIBRARY_SEARCH_PATHS:
+          - $(inherited)
+          - $(PROJECT_DIR)/build/llama
+        OTHER_LDFLAGS:
+          - $(inherited)
+          - -lggml
+          - -lllama
     dependencies:
       - framework: Accelerate.framework
       - framework: Metal.framework
