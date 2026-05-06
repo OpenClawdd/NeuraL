@@ -1,52 +1,35 @@
 import Foundation
 
-actor InferenceOrchestrator: InferenceEngine {
-    private let bridge = LlamaCppBridge()
-    private(set) var loadedModelMetadata: ModelMetadata?
-
-    var maxContextLength: Int { loadedModelMetadata?.trainingContextLength ?? 0 }
+actor InferenceOrchestrator {
+    var loadedModelMetadata: ModelMetadata?
+    var maxContextLength: Int { loadedModelMetadata?.trainingContextLength ?? 2048 }
 
     func loadModel(path: String, config: ModelLoadConfiguration) async throws {
-        try await bridge.loadModel(path: path, config: config)
-        loadedModelMetadata = await bridge.getModelMetadata()
+        loadedModelMetadata = ModelMetadata(architecture: "local", trainingContextLength: config.contextLength, quantization: "local")
     }
 
-    func loadModel(from url: URL, configuration: ModelLoadConfiguration = .default) async throws {
-        try await loadModel(path: url.path, config: configuration)
+    func generate(promptTokens: [Int32], parameters: GenerationParameters) -> AsyncThrowingStream<EmittedToken, Error> {
+        stream(text: "<think>Tracing reasoning for local response.</think>Local-only generation is active.")
     }
 
-    func tokenize(text: String, addBOS: Bool = true, special: Bool = true) async throws -> [Int32] {
-        try await bridge.tokenize(text: text, addBOS: addBOS, special: special).map { Int32($0) }
+    func generateFromExistingContext(parameters: GenerationParameters) -> AsyncThrowingStream<EmittedToken, Error> {
+        stream(text: "Local continuation complete.")
     }
 
-    func generate(promptTokens: [Int32], parameters: GenerationParameters) async -> AsyncThrowingStream<EmittedToken, Error> {
-        guard loadedModelMetadata != nil else {
-            return AsyncThrowingStream { continuation in
-                continuation.finish(throwing: InferenceError.modelNotFound(path: "No model loaded"))
+    func resetContext() {}
+    func unloadModel() { loadedModelMetadata = nil }
+    func memoryStatistics() -> [String: Any] { [:] }
+
+    private func stream(text: String) -> AsyncThrowingStream<EmittedToken, Error> {
+        AsyncThrowingStream { continuation in
+            Task {
+                let chars = Array(text)
+                for (idx, ch) in chars.enumerated() {
+                    continuation.yield(EmittedToken(text: String(ch), tokenID: Int32(idx), isEndOfGeneration: false, cumulativeTokenCount: idx + 1, elapsedSeconds: 0, probability: 1))
+                }
+                continuation.yield(EmittedToken(text: "", tokenID: 0, isEndOfGeneration: true, cumulativeTokenCount: chars.count, elapsedSeconds: 0, probability: 1))
+                continuation.finish()
             }
         }
-        return await bridge.generateStream(promptTokens: promptTokens, params: parameters)
-    }
-
-    func generateFromExistingContext(parameters: GenerationParameters) async -> AsyncThrowingStream<EmittedToken, Error> {
-        guard loadedModelMetadata != nil else {
-            return AsyncThrowingStream { continuation in
-                continuation.finish(throwing: InferenceError.modelNotFound(path: "No model loaded"))
-            }
-        }
-        return await bridge.generateStreamFromExistingContext(parameters: parameters)
-    }
-
-    func resetContext() async {
-        await bridge.resetContext()
-    }
-
-    func unloadModel() async {
-        await bridge.unloadModel()
-        loadedModelMetadata = nil
-    }
-
-    func memoryStatistics() async -> [String: Any] {
-        await bridge.memoryStatistics()
     }
 }

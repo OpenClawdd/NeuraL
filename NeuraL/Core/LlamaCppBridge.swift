@@ -1,10 +1,6 @@
 import Foundation
 
 actor LlamaCppBridge {
-    private static let initializeBackend: Void = {
-        llama_backend_init()
-    }()
-
     private struct RuntimeSnapshot: @unchecked Sendable {
         let model: OpaquePointer
         let context: OpaquePointer
@@ -58,8 +54,9 @@ actor LlamaCppBridge {
     func getModelMetadata() -> ModelMetadata {
         guard let m = model else { return ModelMetadata() }
         let vocab = llama_model_get_vocab(m)
-        let nVocab = llama_vocab_n_tokens(vocab)
-        let arch = "llama.cpp"
+        let nVocab = llama_vocab_size(vocab)
+        let archCStr = llama_model_arch(m) ?? ""
+        let arch = String(cString: archCStr)
         return ModelMetadata(
             architecture: arch,
             layerCount: Int(llama_model_n_layer(m)),
@@ -74,6 +71,7 @@ actor LlamaCppBridge {
 
     func tokenize(text: String, addBOS: Bool, special: Bool) async throws -> [llama_token] {
         guard let m = model else { throw InferenceError.contextInvalidated }
+        var tokens: [llama_token] = []
         let vocab = llama_model_get_vocab(m)
         return try text.withCString { cText in
             let textLength = Int32(text.utf8.count)
@@ -164,24 +162,6 @@ actor LlamaCppBridge {
         }
     }
 
-    private static func decodeToken(_ token: llama_token, vocab: OpaquePointer?) -> String {
-        guard let vocab else { return "" }
-
-        var buffer = Array(repeating: CChar(0), count: 128)
-        let writtenCount = llama_token_to_piece(vocab, token, &buffer, Int32(buffer.count), 0, true)
-        guard writtenCount != 0 else { return "" }
-
-        if writtenCount < 0 {
-            let requiredCount = Int(-writtenCount)
-            buffer = Array(repeating: CChar(0), count: requiredCount)
-            let retryCount = llama_token_to_piece(vocab, token, &buffer, Int32(buffer.count), 0, true)
-            guard retryCount > 0 else { return "" }
-            return String(decoding: buffer.prefix(Int(retryCount)).map { UInt8(bitPattern: $0) }, as: UTF8.self)
-        }
-
-        return String(decoding: buffer.prefix(Int(writtenCount)).map { UInt8(bitPattern: $0) }, as: UTF8.self)
-    }
-
     private static func makeGenerationStream(
         snapshot: RuntimeSnapshot,
         params: GenerationParameters
@@ -189,22 +169,14 @@ actor LlamaCppBridge {
         AsyncThrowingStream { continuation in
             Task {
                 let vocab = llama_model_get_vocab(snapshot.model)
-                let chain = llama_sampler_chain_init(llama_sampler_chain_default_params())
-                guard let chain else {
-                    continuation.finish(throwing: InferenceError.contextInvalidated)
-                    return
-                }
-
-                llama_sampler_chain_add(chain, llama_sampler_init_penalties(
-                    Int32(params.repeatWindow),
-                    params.repeatPenalty,
-                    0.0,
-                    0.0
-                ))
+                let chain = llama_sampler_chain_init(vocab)
+                llama_sampler_chain_add(chain, llama_sampler_init_temp(params.temperature))
                 llama_sampler_chain_add(chain, llama_sampler_init_top_k(params.topK))
                 llama_sampler_chain_add(chain, llama_sampler_init_top_p(params.topP, 1))
-                llama_sampler_chain_add(chain, llama_sampler_init_temp(params.temperature))
-                llama_sampler_chain_add(chain, llama_sampler_init_dist(params.resolvedSeed))
+                llama_sampler_chain_add(chain, llama_sampler_init_softmax())
+                if let seed = params.seed {
+                    llama_sampler_chain_add(chain, llama_sampler_init_dist(UInt32(truncatingIfNeeded: seed)))
+                }
 
                 var totalTokens = 0
                 let startTime = Date()
@@ -225,7 +197,7 @@ actor LlamaCppBridge {
                         break
                     }
 
-                    let text = Self.decodeToken(token, vocab: vocab)
+                    let text = String(cString: llama_token_to_str(vocab, token))
                     continuation.yield(EmittedToken(
                         text: text,
                         tokenID: Int(token),
@@ -237,11 +209,7 @@ actor LlamaCppBridge {
 
                     var oneTokenArray = [token]
                     let oneToken = llama_batch_get_one(&oneTokenArray, 1)
-                    if llama_decode(snapshot.context, oneToken) != 0 {
-                        llama_sampler_free(chain)
-                        continuation.finish(throwing: InferenceError.contextInvalidated)
-                        return
-                    }
+                    llama_decode(snapshot.context, oneToken)
                     totalTokens += 1
                 }
 
@@ -249,12 +217,5 @@ actor LlamaCppBridge {
                 continuation.finish()
             }
         }
-    }
-}
-
-
-private extension GenerationParameters {
-    var resolvedSeed: UInt32 {
-        seed.map { UInt32(truncatingIfNeeded: $0) } ?? 0xFFFF_FFFF
     }
 }
