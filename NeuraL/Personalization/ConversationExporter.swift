@@ -1,14 +1,14 @@
-//
+﻿//
 //  ConversationExporter.swift
 //  NeuraL
 //
-//  Phase 7.4 — Export & Archive for Conversations
+//  Phase 7.4 â€” Export & Archive for Conversations
 //
 //  Provides export capabilities for conversations:
-//  1. Plain Text (.txt) — simple, universally readable
-//  2. Markdown (.md) — formatted with headers and code blocks preserved
-//  3. PDF (.pdf) — professional, shareable document
-//  4. JSON (.json) — machine-readable, full fidelity
+//  1. Plain Text (.txt) â€” simple, universally readable
+//  2. Markdown (.md) â€” formatted with headers and code blocks preserved
+//  3. PDF (.pdf) â€” professional, shareable document
+//  4. JSON (.json) â€” machine-readable, full fidelity
 //
 //  Also provides:
 //  - Archive: Move conversations to long-term storage (hidden from main list)
@@ -17,6 +17,30 @@
 //
 
 import SwiftUI
+
+struct ConversationStore {
+    static func storeDirectory() throws -> URL {
+        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let dir = docs.appendingPathComponent("Conversations")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }
+    static func save(_ conv: Conversation) throws {
+        let url = try storeDirectory().appendingPathComponent("\(conv.id.uuidString).json")
+        try JSONEncoder().encode(conv).write(to: url)
+    }
+    static func load(id: UUID) throws -> Conversation {
+        let data = try Data(contentsOf: storeDirectory().appendingPathComponent("\(id.uuidString).json"))
+        return try JSONDecoder().decode(Conversation.self, from: data)
+    }
+    static func listAll() throws -> [UUID] {
+        let files = try FileManager.default.contentsOfDirectory(at: storeDirectory(), includingPropertiesForKeys: nil)
+        return files.compactMap { UUID(uuidString: import SwiftUI.deletingPathExtension().lastPathComponent) }
+    }
+    static func delete(id: UUID) throws {
+        try FileManager.default.removeItem(at: storeDirectory().appendingPathComponent("\(id.uuidString).json"))
+    }
+}
 import UIKit
 
 // MARK: - Export Format
@@ -152,11 +176,11 @@ enum ConversationExporter {
                 md += "> \(message.content.replacingOccurrences(of: "\n", with: "\n> "))\n\n"
 
             case .user:
-                md += "### 👤 You *\(timestamp)*\n\n"
+                md += "### ðŸ‘¤ You *\(timestamp)*\n\n"
                 md += "\(message.content)\n\n"
 
             case .assistant:
-                md += "### 🤖 Assistant *\(timestamp)*\n\n"
+                md += "### ðŸ¤– Assistant *\(timestamp)*\n\n"
 
                 // Show thinking text if present
                 if let thinking = message.thinkingText {
@@ -171,7 +195,7 @@ enum ConversationExporter {
                 if let functionCalls = message.functionCalls, !functionCalls.isEmpty {
                     md += "**Tools used:**\n"
                     for call in functionCalls {
-                        let icon = call.isSuccess ? "✅" : "❌"
+                        let icon = call.isSuccess ? "âœ…" : "âŒ"
                         md += "- \(icon) `\(call.toolName)` (\(String(format: "%.2f", call.durationSeconds))s)\n"
                     }
                     md += "\n"
@@ -181,14 +205,14 @@ enum ConversationExporter {
                 if let ragSources = message.ragSources, !ragSources.isEmpty {
                     md += "**Sources:**\n"
                     for source in ragSources {
-                        md += "- \(source.documentName) — chunk \(source.chunkIndex + 1) (similarity: \(String(format: "%.0f%%", source.similarity * 100)))\n"
+                        md += "- \(source.documentName) â€” chunk \(source.chunkIndex + 1) (similarity: \(String(format: "%.0f%%", source.similarity * 100)))\n"
                     }
                     md += "\n"
                 }
 
                 // Show generation metrics
                 if let metadata = message.generationMetadata {
-                    md += "*\(String(format: "%.1f", metadata.tokensPerSecond)) tok/s · \(metadata.tokensGenerated) tokens*\n\n"
+                    md += "*\(String(format: "%.1f", metadata.tokensPerSecond)) tok/s Â· \(metadata.tokensGenerated) tokens*\n\n"
                 }
             }
         }
@@ -264,7 +288,7 @@ enum ConversationExporter {
                     .font: UIFont.systemFont(ofSize: 11, weight: .semibold),
                     .foregroundColor: roleColor
                 ]
-                let headerString = NSAttributedString(string: "\(roleLabel) · \(timestamp)", attributes: headerAttrs)
+                let headerString = NSAttributedString(string: "\(roleLabel) Â· \(timestamp)", attributes: headerAttrs)
                 headerString.draw(at: CGPoint(x: margin, y: y))
                 y += 16
 
@@ -651,7 +675,7 @@ struct ThemeSettingsDetail: View {
                 Text("Color Scheme")
             }
 
-            // Accent color — Frutiger Aero: glossy color circles
+            // Accent color â€” Frutiger Aero: glossy color circles
             Section {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
@@ -728,7 +752,7 @@ struct ThemeSettingsDetail: View {
                 Text("Text Size")
             }
 
-            // Display options — Frutiger Aero: custom toggle style
+            // Display options â€” Frutiger Aero: custom toggle style
             Section {
                 Toggle("Show Timestamps", isOn: Binding(
                     get: { theme.showTimestamps },
@@ -843,3 +867,4 @@ struct ArchiveView: View {
         loadArchived()
     }
 }
+
