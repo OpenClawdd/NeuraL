@@ -57,7 +57,7 @@ enum Phase2ConsoleDriver {
         let assistantMsg = ChatMessage.assistantMessage(
             "The capital of France is Paris.",
             tokenInfo: MessageTokenInfo(promptTokenCount: 4, generationTokenCount: 8),
-            metadata: GenerationMetadata.placeholder
+            metadata: GenerationMetadata.empty
         )
         assert(assistantMsg.role == .assistant, "Assistant message role mismatch")
         assert(assistantMsg.tokenInfo.totalTokenCount == 12, "Token count mismatch")
