@@ -17,30 +17,6 @@ targets:
     settings:
       base:
         SWIFT_OBJC_BRIDGING_HEADER: Bridging/BridgingHeader.h
-        SWIFT_INCLUDE_PATHS:
-          - $(inherited)
-          - $(PROJECT_DIR)/Bridging
-        HEADER_SEARCH_PATHS:
-          - $(inherited)
-          - $(PROJECT_DIR)/Bridging
-          - $(PROJECT_DIR)/build/llama/include
-          - $(PROJECT_DIR)/build/llama/include/ggml
-          - $(PROJECT_DIR)/llama.cpp/include
-          - $(PROJECT_DIR)/llama.cpp/ggml/include
-        LIBRARY_SEARCH_PATHS:
-          - $(inherited)
-          - $(PROJECT_DIR)/build/llama
-        OTHER_LDFLAGS:
-          - $(inherited)
-          - -lllama
-          - -lggml
-          - -lggml-base
-          - -lggml-cpu
-          - -lggml-metal
-          - -framework
-          - Metal
-          - -framework
-          - Foundation
     dependencies:
       - framework: Accelerate.framework
       - framework: Metal.framework
