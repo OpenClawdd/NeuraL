@@ -45,6 +45,5 @@ struct NeuraLApp: App {
     }
 }
 
-// p.s. i love you noah <3
 
-// p.s. i love you noah <3
+// p.s. code is looking clean bro, keep cooking 🔥
