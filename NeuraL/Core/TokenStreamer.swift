@@ -1,14 +1,14 @@
-//
+﻿//
 //  TokenStreamer.swift
 //  NeuraL
 //
-//  Phase 1 — Token Stream Accumulator and Typewriter-Effect Controller
+//  Phase 1 â€” Token Stream Accumulator and Typewriter-Effect Controller
 //
 //  The TokenStreamer sits between the LlamaCppBridge's raw token stream
 //  and the InferenceOrchestrator's public API. It handles:
 //
 //  1. UTF-8 boundary safety: LLM tokens can split multi-byte UTF-8 sequences.
-//     A token like "é" (2 bytes: 0xC3 0xA9) might be emitted as two separate
+//     A token like "Ã©" (2 bytes: 0xC3 0xA9) might be emitted as two separate
 //     tokens if the tokenizer split it. The TokenStreamer buffers incomplete
 //     UTF-8 sequences and only emits complete characters.
 //
@@ -30,7 +30,7 @@ import Foundation
 /// UTF-8 strings. This is essential because LLM tokenizers can produce
 /// tokens that contain partial multi-byte UTF-8 sequences.
 ///
-/// For example, the token for "é" might be emitted as two separate tokens:
+/// For example, the token for "Ã©" might be emitted as two separate tokens:
 /// one containing the leading byte 0xC3 and another containing 0xA9.
 /// Neither is valid UTF-8 on its own. This accumulator buffers such
 /// fragments until a complete character is formed.
@@ -98,7 +98,7 @@ struct UTF8TokenAccumulator: Sendable {
             } else if byte >= 0xF0 && byte <= 0xF4 {
                 charLength = 4
             } else if byte >= 0x80 && byte <= 0xBF {
-                // Stray continuation byte — this is invalid UTF-8.
+                // Stray continuation byte â€” this is invalid UTF-8.
                 // This can happen when a tokenizer produces bytes that
                 // don't align to UTF-8 boundaries. Skip this byte.
                 index += 1
@@ -114,7 +114,7 @@ struct UTF8TokenAccumulator: Sendable {
             // Check if we have enough bytes for the complete character
             let endIndex = index + charLength
             if endIndex > bytes.count {
-                // Incomplete character — stop here, buffer the rest
+                // Incomplete character â€” stop here, buffer the rest
                 break
             }
 
@@ -128,13 +128,13 @@ struct UTF8TokenAccumulator: Sendable {
             }
 
             if !isValid {
-                // Invalid continuation — skip the start byte and try again
+                // Invalid continuation â€” skip the start byte and try again
                 index += 1
                 consumedCount += 1
                 continue
             }
 
-            // Valid character — add it to the output
+            // Valid character â€” add it to the output
             for j in 0..<charLength {
                 validBytes.append(bytes[index + j])
             }
@@ -261,12 +261,12 @@ final class TokenStreamController: @unchecked Sendable {
 
         let token = EmittedToken(
             text: safeText,
-            tokenID: tokenID,
+            tokenID: Int32(tokenID),
             isEndOfGeneration: isEog,
             cumulativeTokenCount: tokenCount,
             elapsedSeconds: Double(elapsed.components.seconds) +
                            Double(elapsed.components.attoseconds) / 1_000_000_000_000_000_000,
-            probability: nil  // Not available from the current bridge API
+            probability: 1.0  // Not available from the current bridge API
         )
 
         continuation.yield(token)
@@ -290,7 +290,7 @@ final class TokenStreamController: @unchecked Sendable {
                 cumulativeTokenCount: tokenCount,
                 elapsedSeconds: Double(elapsed.components.seconds) +
                                Double(elapsed.components.attoseconds) / 1_000_000_000_000_000_000,
-                probability: nil
+                probability: 1.0
             )
             continuation.yield(token)
         }
@@ -323,3 +323,4 @@ final class TokenStreamController: @unchecked Sendable {
         accumulatedText
     }
 }
+

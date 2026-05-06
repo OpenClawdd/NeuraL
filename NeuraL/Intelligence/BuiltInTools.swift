@@ -1,8 +1,8 @@
-//
+﻿//
 //  BuiltInTools.swift
 //  NeuraL
 //
-//  Phase 6.2 — Built-in Tools (Calculator, Calendar, Web Search)
+//  Phase 6.2 â€” Built-in Tools (Calculator, Calendar, Web Search)
 //
 //  These tools are registered at app launch and provide basic on-device
 //  capabilities that the LLM can invoke during generation.
@@ -261,3 +261,4 @@ enum BuiltInTools {
         await registry.register(DeviceInfoTool())
     }
 }
+

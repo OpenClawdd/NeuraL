@@ -1,25 +1,25 @@
-//
+﻿//
 //  SmartContextEvictor.swift
 //  NeuraL
 //
-//  Phase 2 — Intelligent Context Window Eviction with System Prompt Preservation
+//  Phase 2 â€” Intelligent Context Window Eviction with System Prompt Preservation
 //
 //  The SmartContextEvictor solves the central problem of on-device LLM inference:
 //  the context window is finite, but conversations grow indefinitely.
 //
 //  Naive approach (Phase 1): Evict tokens from position 0.
-//    ❌ This destroys the system prompt, causing the model to lose its
+//    âŒ This destroys the system prompt, causing the model to lose its
 //      behavioral constraints and produce off-topic or harmful output.
-//    ❌ It also destroys the beginning of the conversation, removing
+//    âŒ It also destroys the beginning of the conversation, removing
 //      important context that later messages reference.
 //
 //  Smart approach (Phase 2): Message-boundary-aware eviction.
-//    ✅ ALWAYS preserves the system prompt.
-//    ✅ Evicts complete (user, assistant) turn pairs — never partial messages.
-//    ✅ Evicts from the oldest turn first (FIFO).
-//    ✅ After eviction, re-formats the remaining conversation and re-processes
+//    âœ… ALWAYS preserves the system prompt.
+//    âœ… Evicts complete (user, assistant) turn pairs â€” never partial messages.
+//    âœ… Evicts from the oldest turn first (FIFO).
+//    âœ… After eviction, re-formats the remaining conversation and re-processes
 //      the prompt to rebuild the KV cache from scratch.
-//    ✅ Reserves tokens for the upcoming generation (configurable headroom).
+//    âœ… Reserves tokens for the upcoming generation (configurable headroom).
 //
 //  Why re-process instead of shifting the KV cache?
 //    - llama_kv_cache_seq_shift() only adjusts position indices; it doesn't
@@ -36,7 +36,7 @@ import os
 // MARK: - Eviction Result
 
 /// The result of a context eviction operation.
-struct EvictionResult: Sendable {
+struct EvictionResult: @unchecked Sendable {
     /// Number of messages evicted.
     let messagesEvicted: Int
 
@@ -327,3 +327,4 @@ actor SmartContextEvictor {
         )
     }
 }
+

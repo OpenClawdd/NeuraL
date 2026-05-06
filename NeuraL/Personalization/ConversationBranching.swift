@@ -1,9 +1,9 @@
-import SwiftUI
+﻿import SwiftUI
 //
 //  ConversationBranching.swift
 //  NeuraL
 //
-//  Phase 7.3 — Conversation Branching & Message Editing
+//  Phase 7.3 â€” Conversation Branching & Message Editing
 //
 //  Implements:
 //  1. Conversation branching: "Regenerate from here" creates an alternative
@@ -238,7 +238,7 @@ final class BranchManager {
 struct ReactionPicker: View {
     let onSelect: (String) -> Void
 
-    private let commonEmojis = ["👍", "❤️", "😂", "🤔", "😮", "🎉", "🔥", "👏", "💡", "⭐"]
+    private let commonEmojis = ["ðŸ‘", "â¤ï¸", "ðŸ˜‚", "ðŸ¤”", "ðŸ˜®", "ðŸŽ‰", "ðŸ”¥", "ðŸ‘", "ðŸ’¡", "â­"]
 
     var body: some View {
         HStack(spacing: 6) {
@@ -333,3 +333,4 @@ struct BranchNavigator: View {
         }
     }
 }
+

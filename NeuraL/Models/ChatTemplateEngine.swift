@@ -1,8 +1,8 @@
-//
+﻿//
 //  ChatTemplateEngine.swift
 //  NeuraL
 //
-//  Phase 2 — Chat Templating Engine
+//  Phase 2 â€” Chat Templating Engine
 //
 //  This module converts a Conversation (array of ChatMessage structs) into
 //  a single formatted string that the model can understand. Different model
@@ -33,9 +33,9 @@ import Foundation
 /// Supported chat template formats.
 ///
 /// When selecting a format, match it to the model you're using:
-/// - Llama-3.x models → .llama3
-/// - Gemma-2, Phi-2/3 → .gemma
-/// - Mistral/Mixtral with ChatML → .chatML
+/// - Llama-3.x models â†’ .llama3
+/// - Gemma-2, Phi-2/3 â†’ .gemma
+/// - Mistral/Mixtral with ChatML â†’ .chatML
 /// - If unsure, check the model's GGUF metadata for "tokenizer.chat_template"
 enum ChatTemplateFormat: String, Sendable, Codable, CaseIterable, CustomStringConvertible {
     case llama3
@@ -140,7 +140,7 @@ struct ChatTemplateEngine: Sendable {
         messages: [ChatMessage],
         forGeneration: Bool = true
     ) -> String {
-        let tempConversation = Conversation(messages: messages)
+        let tempConversation = Conversation()
         return formatPrompt(conversation: tempConversation, forGeneration: forGeneration)
     }
 
@@ -297,7 +297,7 @@ struct ChatTemplateEngine: Sendable {
 
     // MARK: - Raw Format
 
-    /// No formatting — just concatenate message contents with newlines.
+    /// No formatting â€” just concatenate message contents with newlines.
     /// Useful for debugging or for models that don't use chat templates.
     private func formatRaw(
         conversation: Conversation,
@@ -341,3 +341,4 @@ struct ChatTemplateEngine: Sendable {
         return contentTokens + roleOverhead
     }
 }
+

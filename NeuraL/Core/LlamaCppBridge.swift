@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 actor LlamaCppBridge {
     private struct RuntimeSnapshot: @unchecked Sendable {

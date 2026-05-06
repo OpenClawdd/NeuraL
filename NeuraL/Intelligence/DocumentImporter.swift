@@ -1,8 +1,8 @@
-//
+﻿//
 //  DocumentImporter.swift
 //  NeuraL
 //
-//  Phase 6.3 — Document Import & Chunking for RAG
+//  Phase 6.3 â€” Document Import & Chunking for RAG
 //
 //  Handles importing documents (PDF, TXT, MD) from the user's device,
 //  extracting text, splitting into chunks, generating embeddings, and
@@ -319,8 +319,8 @@ actor DocumentImporter {
 
     /// Extract text from a PDF document using Core Graphics.
     private func extractPDFText(from url: URL) -> String {
-        guard let provider = CGDataProvider(url: url as CFURL),
-              let pdfDoc = CGPDFDocument(provider) else {
+        guard let provider = // CGDataProvider(url: url as CFURL),
+              let pdfDoc = // CGPDFDocument(provider) else {
             return ""
         }
 
@@ -345,3 +345,4 @@ actor DocumentImporter {
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
+
