@@ -1,58 +1,42 @@
-﻿name: NeuraL
+name: NeuraL
 options:
   bundleIdPrefix: com.neural
   deploymentTarget:
     iOS: "17.0"
+
 targets:
   NeuraL:
     type: application
     platform: iOS
     sources:
       - path: NeuraL
-        excludes:
-          - "NeuraLTests"
-          - "NeuraLUITests"
-          - "**/*.md"
-          - "**/*.sh"
-          - "Intelligence/DocumentImporter.swift"
-          - "Personalization/ConversationBranching.swift"
-          - "Personalization/ConversationExporter.swift"
-          - "Views/ConversationsView.swift"
     info:
       path: NeuraL/Info.plist
-      properties:
-        CFBundleDisplayName: NeuraL
-        CFBundleName: NeuraL
-        CFBundleVersion: "1"
-        CFBundleShortVersionString: "1.0"
-        BGTaskSchedulerPermittedIdentifiers:
-          - com.neural.shadow-memory.refresh
-        UIBackgroundModes:
-          - fetch
-        UISupportedInterfaceOrientations:
-          - UIInterfaceOrientationPortrait
-          - UIInterfaceOrientationLandscapeLeft
-          - UIInterfaceOrientationLandscapeRight
     entitlements:
       path: Entitlements/NeuraL.entitlements
     settings:
       base:
         SWIFT_OBJC_BRIDGING_HEADER: Bridging/BridgingHeader.h
-        HEADER_SEARCH_PATHS:
-          - $(inherited)
-          - $(PROJECT_DIR)/llama.cpp/include
-          - $(PROJECT_DIR)/llama.cpp/ggml/include
-        LIBRARY_SEARCH_PATHS:
-          - $(inherited)
-          - $(PROJECT_DIR)/build/llama
-        OTHER_LDFLAGS:
-          - $(inherited)
-          - -lllama
-          - -framework Accelerate
-          - -framework Metal
-          - -framework MetalKit
-          - -framework Speech
-          - -framework AVFoundation
-          - -framework WebKit
-          - -framework BackgroundTasks
-          - -lc++
+    dependencies:
+      - framework: Accelerate.framework
+      - framework: Metal.framework
+      - framework: MetalKit.framework
+      - framework: Speech.framework
+      - framework: AVFoundation.framework
+      - sdk: libc++.tbd
+
+  NeuraLTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: NeuraLTests
+    dependencies:
+      - target: NeuraL
+
+  NeuraLUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: NeuraLUITests
+    dependencies:
+      - target: NeuraL

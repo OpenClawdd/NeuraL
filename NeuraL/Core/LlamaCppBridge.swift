@@ -1,89 +1,189 @@
-﻿import Foundation
+import Foundation
 import os
+import llama
 
 actor LlamaCppBridge {
-    typealias llama_token = Int32
+    private struct RuntimeSnapshot: @unchecked Sendable {
+        let model: OpaquePointer
+        let context: OpaquePointer
+    }
+
     private var model: OpaquePointer?
     private var context: OpaquePointer?
-
-    func loadModel(path: String, config: ModelLoadConfiguration) throws {
-        var mparams = llama_model_default_params()
-        mparams.n_gpu_layers = Int32(config.gpuLayers)
-        mparams.use_mmap = config.useMmap
-        guard let m = llama_model_load_from_file(path, mparams) else { throw InferenceError.modelNotFound }
-        self.model = m
-
-        var cparams = llama_context_default_params()
-        cparams.n_ctx = UInt32(config.contextLength)
-        cparams.n_batch = UInt32(config.batchSize)
-        guard let ctx = llama_init_from_model(m, cparams) else { throw InferenceError.contextInvalidated }
-        self.context = ctx
-    }
+    private var sampler: UnsafeMutablePointer<llama_sampler>?
 
     var contextLength: Int32 {
         guard let ctx = context else { return 0 }
-        return Int32(llama_n_ctx(ctx))
+        return llama_n_ctx(ctx)
     }
 
     var maxContextLength: Int32 { contextLength }
 
-    func tokenize(text: String, addBOS: Bool, special: Bool) -> [llama_token] {
-        guard let model else { return [] }
-        let vocab = llama_model_get_vocab(model)
-        let cText = text.cString(using: .utf8)!
-        let textLen = Int32(text.utf8.count)
-        let maxTokens = textLen + 64
-        var tokens = [llama_token](repeating: 0, count: Int(maxTokens))
-        let n = llama_tokenize(vocab, cText, textLen, &tokens, maxTokens, addBOS, special)
-        return Array(tokens.prefix(Int(n)))
+    func loadModel(path: String, config: ModelLoadConfiguration) throws {
+        var modelParams = llama_model_default_params()
+        modelParams.n_gpu_layers = Int32(config.gpuLayers)
+        modelParams.use_mmap = config.useMmap
+
+        guard let m = llama_model_load_from_file(path, modelParams) else {
+            throw InferenceError.modelNotFound(path: path)
+        }
+        self.model = m
+
+        var ctxParams = llama_context_default_params()
+        ctxParams.n_ctx = UInt32(config.contextLength)
+        ctxParams.n_batch = UInt32(config.batchSize)
+        guard let ctx = llama_init_from_model(m, ctxParams) else {
+            llama_model_free(m)
+            self.model = nil
+            throw InferenceError.contextInvalidated
+        }
+        self.context = ctx
     }
 
-    func processPrompt(tokens: [llama_token]) {
-        guard let ctx = context else { return }
-        var t = tokens
-        let batch = llama_batch_get_one(&t, Int32(tokens.count))
-        llama_decode(ctx, batch)
-    }
-
-    func generateSync(promptTokens: [llama_token], params: GenerationParameters) -> [EmittedToken] {
-        guard let m = model, let ctx = context else { return [] }
-
-        processPrompt(tokens: promptTokens)
-
+    func getModelMetadata() -> ModelMetadata {
+        guard let m = model else { return ModelMetadata() }
         let vocab = llama_model_get_vocab(m)
-        let sparams = llama_sampler_chain_params()
-        let chain = llama_sampler_chain_init(sparams)
-        llama_sampler_chain_add(chain, llama_sampler_init_temp(params.temperature))
-        llama_sampler_chain_add(chain, llama_sampler_init_top_k(params.topK))
-        llama_sampler_chain_add(chain, llama_sampler_init_top_p(params.topP, 1))
-        if let seed = params.seed {
-            llama_sampler_chain_add(chain, llama_sampler_init_dist(UInt32(seed)))
-        }
-
-        var result: [EmittedToken] = []
-        var count = 0
-        let start = Date()
-
-        for _ in 0..<params.maxTokens {
-            let token = llama_sampler_sample(chain, ctx, -1)
-            let isEog = llama_vocab_is_eog(vocab, token)
-            var buf = [CChar](repeating: 0, count: 256)
-            llama_token_to_piece(ctx, token, &buf, 256, 0, false)
-            let text = isEog ? "" : String(cString: buf)
-            result.append(EmittedToken(text: text, tokenID: token, isEndOfGeneration: isEog, cumulativeTokenCount: count, elapsedSeconds: Date().timeIntervalSince(start), probability: 1))
-            if isEog { break }
-            var one = [token]
-            let batch = llama_batch_get_one(&one, 1)
-            llama_decode(ctx, batch)
-            count += 1
-        }
-
-        llama_sampler_free(chain)
-        return result
+        let nVocab = llama_vocab_size(vocab)
+        let archCStr = llama_model_arch(m) ?? ""
+        let arch = String(cString: archCStr)
+        return ModelMetadata(
+            architecture: arch,
+            layerCount: Int(llama_model_n_layer(m)),
+            embeddingDimension: Int(llama_model_n_embd(m)),
+            vocabularySize: Int(nVocab),
+            trainingContextLength: Int(llama_model_n_ctx_train(m)),
+            fileSize: 0,
+            quantization: "",
+            estimatedMemoryFootprint: 0
+        )
     }
+
+    func tokenize(text: String, addBOS: Bool, special: Bool) async throws -> [llama_token] {
+        guard let m = model else { throw InferenceError.contextInvalidated }
+        var tokens: [llama_token] = []
+        let vocab = llama_model_get_vocab(m)
+        let cText = text.cString(using: .utf8)!
+        let tokenList = llama_tokenize(vocab, cText, addBOS, special)
+        for i in 0..<tokenList.size {
+            tokens.append(tokenList.data[Int(i)])
+        }
+        return tokens
+    }
+
+    func processPrompt(tokens: [llama_token]) async throws {
+        guard let ctx = context else { throw InferenceError.contextInvalidated }
+        try Self.decodePrompt(tokens: tokens, context: ctx)
+    }
+
+    func generateStream(promptTokens: [llama_token], params: GenerationParameters) -> AsyncThrowingStream<EmittedToken, Error> {
+        guard let snapshot = runtimeSnapshot() else {
+            return Self.failureStream(InferenceError.contextInvalidated)
+        }
+
+        do {
+            try Self.decodePrompt(tokens: promptTokens, context: snapshot.context)
+        } catch {
+            return Self.failureStream(error)
+        }
+
+        return Self.makeGenerationStream(snapshot: snapshot, params: params)
+    }
+
+    func generateStreamFromExistingContext(parameters: GenerationParameters) -> AsyncThrowingStream<EmittedToken, Error> {
+        guard let snapshot = runtimeSnapshot() else {
+            return Self.failureStream(InferenceError.contextInvalidated)
+        }
+        return Self.makeGenerationStream(snapshot: snapshot, params: parameters)
+    }
+
+    func resetContext() {}
+    func clearKVCache() {}
+    func evictOldestTokens(count: Int) {}
 
     func unloadModel() {
-        if let ctx = context { llama_free(ctx); context = nil }
-        if let m = model { llama_model_free(m); model = nil }
+        if let ctx = context { llama_free(ctx) }
+        if let model = model { llama_model_free(model) }
+        context = nil
+        model = nil
+        sampler = nil
+    }
+
+    func memoryStatistics() -> [String: Any] { return [:] }
+
+    private func runtimeSnapshot() -> RuntimeSnapshot? {
+        guard let model, let context else { return nil }
+        return RuntimeSnapshot(model: model, context: context)
+    }
+
+    private static func decodePrompt(tokens: [llama_token], context: OpaquePointer) throws {
+        guard !tokens.isEmpty else { return }
+        var mutableTokens = tokens
+        let batch = llama_batch_get_one(&mutableTokens, Int32(tokens.count))
+        if llama_decode(context, batch) != 0 {
+            throw InferenceError.contextInvalidated
+        }
+    }
+
+    private static func failureStream(_ error: Error) -> AsyncThrowingStream<EmittedToken, Error> {
+        AsyncThrowingStream { continuation in
+            continuation.finish(throwing: error)
+        }
+    }
+
+    private static func makeGenerationStream(
+        snapshot: RuntimeSnapshot,
+        params: GenerationParameters
+    ) -> AsyncThrowingStream<EmittedToken, Error> {
+        AsyncThrowingStream { continuation in
+            Task {
+                let vocab = llama_model_get_vocab(snapshot.model)
+                let chain = llama_sampler_chain_init(vocab)
+                llama_sampler_chain_add(chain, llama_sampler_init_temp(params.temperature))
+                llama_sampler_chain_add(chain, llama_sampler_init_top_k(params.topK))
+                llama_sampler_chain_add(chain, llama_sampler_init_top_p(params.topP, 1))
+                llama_sampler_chain_add(chain, llama_sampler_init_softmax())
+                if let seed = params.seed {
+                    llama_sampler_chain_add(chain, llama_sampler_init_dist(UInt32(truncatingIfNeeded: seed)))
+                }
+
+                var totalTokens = 0
+                let startTime = Date()
+
+                for _ in 0..<params.maxTokens {
+                    guard !Task.isCancelled else { break }
+
+                    let token = llama_sampler_sample(chain, snapshot.context, -1)
+                    if llama_vocab_is_eog(vocab, token) {
+                        continuation.yield(EmittedToken(
+                            text: "",
+                            tokenID: Int(token),
+                            isEndOfGeneration: true,
+                            cumulativeTokenCount: totalTokens,
+                            elapsedSeconds: Date().timeIntervalSince(startTime),
+                            probability: 1.0
+                        ))
+                        break
+                    }
+
+                    let text = String(cString: llama_token_to_str(vocab, token))
+                    continuation.yield(EmittedToken(
+                        text: text,
+                        tokenID: Int(token),
+                        isEndOfGeneration: false,
+                        cumulativeTokenCount: totalTokens,
+                        elapsedSeconds: Date().timeIntervalSince(startTime),
+                        probability: 1.0
+                    ))
+
+                    var oneTokenArray = [token]
+                    let oneToken = llama_batch_get_one(&oneTokenArray, 1)
+                    llama_decode(snapshot.context, oneToken)
+                    totalTokens += 1
+                }
+
+                llama_sampler_free(chain)
+                continuation.finish()
+            }
+        }
     }
 }
