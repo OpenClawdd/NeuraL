@@ -76,7 +76,7 @@ NeuraL/
 Bridging/
 │   ├── BridgingHeader.h             → Add to project
 │   ├── llama_c_interop.h            → Add to project
-│   └── llama.modulemap              → Add to project (reference only)
+│   └── llama.modulemap              → Reference only; bridging header is used
 Entitlements/
 │   └── NeuraL.entitlements       → Add to project
 ```
@@ -158,7 +158,7 @@ In your Xcode project's Build Settings:
 | Enable Bitcode | No (llama.cpp doesn't support bitcode) |
 | Other C Flags | `-DGGML_USE_METAL` |
 | Other C++ Flags | `-DGGML_USE_METAL -std=c++17` |
-| SWIFT_INCLUDE_PATHS | `$(SRCROOT)/Bridging` (if using modulemap approach) |
+| SWIFT_INCLUDE_PATHS | Not required for the bridging-header path |
 
 ### 5. Configure Entitlements
 
@@ -296,7 +296,7 @@ NeuraL/
 ├── Bridging/
 │   ├── BridgingHeader.h              # Exposes llama.cpp C API to Swift
 │   ├── llama_c_interop.h             # Swift-friendly C wrappers
-│   └── llama.modulemap               # Alternative: module-based import
+│   └── llama.modulemap               # Reference only; do not import from Swift
 ├── Entitlements/
 │   └── NeuraL.entitlements        # extended-virtual-addressing
 ├── NeuraLTests/                    # Unit tests

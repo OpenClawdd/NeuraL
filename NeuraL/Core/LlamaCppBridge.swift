@@ -1,6 +1,4 @@
 import Foundation
-import os
-import llama
 
 actor LlamaCppBridge {
     private struct RuntimeSnapshot: @unchecked Sendable {
@@ -12,14 +10,25 @@ actor LlamaCppBridge {
     private var context: OpaquePointer?
     private var sampler: UnsafeMutablePointer<llama_sampler>?
 
+    init() {
+        _ = Self.initializeBackend
+    }
+
+    deinit {
+        if let ctx = context { llama_free(ctx) }
+        if let model = model { llama_model_free(model) }
+    }
+
     var contextLength: Int32 {
         guard let ctx = context else { return 0 }
-        return llama_n_ctx(ctx)
+        return Int32(llama_n_ctx(ctx))
     }
 
     var maxContextLength: Int32 { contextLength }
 
     func loadModel(path: String, config: ModelLoadConfiguration) throws {
+        unloadModel()
+
         var modelParams = llama_model_default_params()
         modelParams.n_gpu_layers = Int32(config.gpuLayers)
         modelParams.use_mmap = config.useMmap
@@ -32,6 +41,8 @@ actor LlamaCppBridge {
         var ctxParams = llama_context_default_params()
         ctxParams.n_ctx = UInt32(config.contextLength)
         ctxParams.n_batch = UInt32(config.batchSize)
+        ctxParams.n_threads = Int32(config.generationThreadCount)
+        ctxParams.n_threads_batch = Int32(config.batchThreadCount)
         guard let ctx = llama_init_from_model(m, ctxParams) else {
             llama_model_free(m)
             self.model = nil
@@ -62,12 +73,33 @@ actor LlamaCppBridge {
         guard let m = model else { throw InferenceError.contextInvalidated }
         var tokens: [llama_token] = []
         let vocab = llama_model_get_vocab(m)
-        let cText = text.cString(using: .utf8)!
-        let tokenList = llama_tokenize(vocab, cText, addBOS, special)
-        for i in 0..<tokenList.size {
-            tokens.append(tokenList.data[Int(i)])
+        return try text.withCString { cText in
+            let textLength = Int32(text.utf8.count)
+            let requiredCount = llama_tokenize(vocab, cText, textLength, nil, 0, addBOS, special)
+            guard requiredCount != Int32.min else {
+                throw InferenceError.contextInvalidated
+            }
+
+            let tokenCapacity = Int(abs(requiredCount))
+            guard tokenCapacity > 0 else { return [] }
+
+            var tokens = Array(repeating: llama_token(0), count: tokenCapacity)
+            let writtenCount = llama_tokenize(
+                vocab,
+                cText,
+                textLength,
+                &tokens,
+                Int32(tokens.count),
+                addBOS,
+                special
+            )
+            guard writtenCount >= 0 else {
+                throw InferenceError.contextInvalidated
+            }
+
+            tokens.removeSubrange(Int(writtenCount)..<tokens.count)
+            return tokens
         }
-        return tokens
     }
 
     func processPrompt(tokens: [llama_token]) async throws {

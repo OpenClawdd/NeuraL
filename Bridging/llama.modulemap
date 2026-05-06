@@ -6,14 +6,12 @@
 //  Bridging/ directory and add its parent path to:
 //    SWIFT_INCLUDE_PATHS = $(SRCROOT)/Bridging
 //
-//  This allows `import llama` in Swift files instead of relying solely
-//  on the bridging header. Using the modulemap approach is preferred
-//  because it enables incremental compilation and avoids polluting the
-//  global namespace.
+//  This file is retained as reference material for teams that choose
+//  an explicit Clang module setup. The app currently uses the Objective-C
+//  bridging header path, so Swift sources should not import this module.
 //
 //  NOTE: If you use the bridging header approach exclusively, this
-//  modulemap is not required. Both approaches work; the modulemap
-//  is cleaner for larger projects.
+//  modulemap is not required.
 //
 
 module llama {
