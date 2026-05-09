@@ -37,6 +37,7 @@ final class DreamStore: ObservableObject {
     func enforceRetention(_ retention: DreamStateSettings.Retention) {
         if let limit = retention.limit, cards.count > limit {
             cards = Array(cards.prefix(limit))
+            save()
         }
     }
 
