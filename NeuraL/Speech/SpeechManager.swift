@@ -208,7 +208,9 @@ final class SpeechSynthesizer: NSObject, ObservableObject, AVSpeechSynthesizerDe
 
     /// Speak the given text aloud.
     func speak(_ text: String, language: String? = nil) {
-        guard !synthesizer.isSpeaking else { stop() }
+        if synthesizer.isSpeaking {
+            stop()
+        }
 
         // Strip markdown formatting for cleaner speech
         let cleanText = stripMarkdown(text)
