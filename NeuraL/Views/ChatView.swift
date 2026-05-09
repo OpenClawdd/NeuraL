@@ -1,11 +1,19 @@
 import SwiftUI
 
+enum AppTab: String, CaseIterable {
+    case chat
+    case models
+    case knowledge
+    case lab
+    case system
+}
+
 struct ChatView: View {
     @State private var chatState: ChatState
     @Binding var selectedTab: AppTab
     @FocusState private var inputFocused: Bool
 
-    init(chatState: ChatState = ChatState(), selectedTab: Binding<AppTab>) {
+    init(chatState: ChatState = ChatState(), selectedTab: Binding<AppTab> = .constant(.chat)) {
         _chatState = State(initialValue: chatState)
         _selectedTab = selectedTab
     }

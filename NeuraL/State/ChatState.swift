@@ -20,10 +20,13 @@ final class ChatState: ObservableObject {
     }
 
     @Published var modelMetadata: ModelMetadata?
+    @Published var contextTokensUsed: Int = 0
 
     let orchestrator = InferenceOrchestrator()
     let synthesizer = DreamSynthesizer()
     var conversation = Conversation()
+
+    let defaultSystemPrompt = "You are a helpful assistant."
 
     init() {
         messages = conversation.messages
@@ -95,6 +98,15 @@ final class ChatState: ObservableObject {
 
     func applyRetention() {
         dreamStore.enforceRetention(dreamSettings.retention)
+    }
+
+    func setSystemPrompt(_ content: String) {
+        if let index = conversation.messages.firstIndex(where: { $0.role == .system }) {
+            conversation.messages[index].content = content
+        } else {
+            conversation.messages.insert(.systemPrompt(content), at: 0)
+        }
+        messages = conversation.messages
     }
 
     func unloadModel() { Task { await orchestrator.unloadModel() }; modelMetadata = nil }

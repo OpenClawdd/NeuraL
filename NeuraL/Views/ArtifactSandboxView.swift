@@ -1,6 +1,22 @@
 import SwiftUI
 import WebKit
 
+enum GeneratedArtifactKind: String, Codable, Sendable {
+    case html
+    case sandbox
+    case javascript
+    case css
+}
+
+struct GeneratedArtifact: Identifiable, Sendable {
+    let id: UUID = UUID()
+    var title: String
+    var estimatedMemoryBytes: Int
+    var isRenderable: Bool
+    var source: String
+    var kind: GeneratedArtifactKind
+}
+
 struct ArtifactSandboxView: View {
     let artifact: GeneratedArtifact
     @State private var isExpanded = true

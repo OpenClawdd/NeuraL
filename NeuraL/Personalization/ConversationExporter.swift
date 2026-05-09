@@ -35,7 +35,7 @@ struct ConversationStore {
     }
     static func listAll() throws -> [UUID] {
         let files = try FileManager.default.contentsOfDirectory(at: storeDirectory(), includingPropertiesForKeys: nil)
-        return files.compactMap { UUID(uuidString: import SwiftUI.deletingPathExtension().lastPathComponent) }
+        return files.compactMap { UUID(uuidString: $0.deletingPathExtension().lastPathComponent) }
     }
     static func delete(id: UUID) throws {
         try FileManager.default.removeItem(at: storeDirectory().appendingPathComponent("\(id.uuidString).json"))
