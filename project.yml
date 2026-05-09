@@ -31,12 +31,12 @@ targets:
           - $(inherited)
           - -lllama
     dependencies:
-      - framework: Accelerate.framework
-      - framework: Metal.framework
-      - framework: MetalKit.framework
-      - framework: Speech.framework
-      - framework: AVFoundation.framework
-      - framework: PDFKit.framework
+      - sdk: Accelerate.framework
+      - sdk: Metal.framework
+      - sdk: MetalKit.framework
+      - sdk: Speech.framework
+      - sdk: AVFoundation.framework
+      - sdk: PDFKit.framework
       - sdk: libc++.tbd
 
   NeuraLTests:
