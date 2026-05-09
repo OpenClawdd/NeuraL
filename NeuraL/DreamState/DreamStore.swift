@@ -16,6 +16,11 @@ final class DreamStore: ObservableObject {
     func load(retention: DreamStateSettings.Retention = .hundred) {
         guard let data = try? Data(contentsOf: url) else { cards = []; return }
         guard let decoded = try? JSONDecoder().decode([DreamCard].self, from: data) else {
+            let df = DateFormatter()
+            df.dateFormat = "yyyyMMdd-HHmmss"
+            let ts = df.string(from: Date())
+            let backup = url.deletingLastPathComponent().appendingPathComponent("dreamcards.corrupt-\(ts).json")
+            try? FileManager.default.copyItem(at: url, to: backup)
             cards = []
             return
         }

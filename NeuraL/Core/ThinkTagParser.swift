@@ -21,7 +21,7 @@ enum ThinkTagParser {
 
     static func parse(_ rawText: String) -> ParsedGeneration {
         guard let openRange = rawText.range(of: openTag, options: [.caseInsensitive]) else {
-            let cleaned = stripLooseThinkClosers(from: rawText)
+            let cleaned = stripStrayDelimiters(from: rawText)
             return ParsedGeneration(
                 reasoningTrace: nil,
                 answer: cleaned.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -51,10 +51,10 @@ enum ThinkTagParser {
         let rawTrace = String(rawText[afterOpen..<closeRange.lowerBound])
         let storedTrace = truncateTrace(rawTrace)
         let suffix = String(rawText[closeRange.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
-        let answer = [prefix, suffix]
+        let answer = stripStrayDelimiters(from: [prefix, suffix]
             .filter { !$0.isEmpty }
             .joined(separator: "\n\n")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: .whitespacesAndNewlines))
 
         return ParsedGeneration(
             reasoningTrace: storedTrace.text,
@@ -96,7 +96,15 @@ enum ThinkTagParser {
         max(1, Int(Double(text.count) / 3.8))
     }
 
-    private static func stripLooseThinkClosers(from text: String) -> String {
-        text.replacingOccurrences(of: closeTag, with: "", options: [.caseInsensitive])
+    private static func stripStrayDelimiters(from text: String) -> String {
+        var cleaned = text
+        cleaned = cleaned.replacingOccurrences(of: closeTag, with: "", options: [.caseInsensitive])
+        cleaned = cleaned.replacingOccurrences(of: "<|im_end|>", with: "")
+        cleaned = cleaned.replacingOccurrences(of: "<|endoftext|>", with: "")
+        cleaned = cleaned.replacingOccurrences(of: "</s>", with: "")
+        if cleaned.hasPrefix("<|im_start|>assistant\n") {
+            cleaned.removeFirst("<|im_start|>assistant\n".count)
+        }
+        return cleaned
     }
 }

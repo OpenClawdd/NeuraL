@@ -69,8 +69,8 @@ final class ChatState: ObservableObject {
                 isGenerating = false
 
                 if dreamSettings.autoCreateDreams,
-                   let prompt = messages.last(where: { $0.role == .user })?.content {
-                    let card = synthesizer.synthesize(
+                   let prompt = messages.last(where: { $0.role == .user })?.content,
+                   let card = synthesizer.synthesize(
                         latestUserPrompt: prompt,
                         assistantAnswer: assistant.content,
                         reasoningTrace: assistant.reasoningTrace,
@@ -78,7 +78,7 @@ final class ChatState: ObservableObject {
                         pinnedMessages: [],
                         importedDocumentNames: [],
                         sourceMessageID: assistant.id
-                    )
+                   ) {
                     dreamStore.append(card, retention: dreamSettings.retention)
                 }
             } catch {
