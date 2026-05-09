@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 struct DocumentsView: View {
     @ObservedObject var chatState: ChatState
     @State private var showFileImporter = false
+    @State private var importError: String?
 
     var body: some View {
         NavigationStack {
@@ -40,6 +41,13 @@ struct DocumentsView: View {
                         }
                     }
                 }
+                if let error = importError {
+                    Section("Import Error") {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                }
                 Section("Local-only") {
                     Text("Documents remain on-device unless you explicitly export.")
                         .font(.caption)
@@ -64,11 +72,15 @@ struct DocumentsView: View {
                 switch result {
                 case .success(let urls):
                     guard let url = urls.first else { return }
-                    guard url.startAccessingSecurityScopedResource() else { return }
+                    guard url.startAccessingSecurityScopedResource() else {
+                        importError = "Permission denied — cannot access the selected file."
+                        return
+                    }
                     defer { url.stopAccessingSecurityScopedResource() }
+                    importError = nil
                     chatState.importDocument(from: url)
-                case .failure:
-                    break
+                case .failure(let error):
+                    importError = error.localizedDescription
                 }
             }
         }

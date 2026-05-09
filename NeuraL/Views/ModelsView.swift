@@ -2,7 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct ModelsView: View {
-    let chatState: ChatState
+    @ObservedObject var chatState: ChatState
     @State private var showFileImporter = false
     @State private var importError: String?
 
@@ -70,6 +70,10 @@ struct ModelsView: View {
                 switch result {
                 case .success(let urls):
                     guard let url = urls.first else { return }
+                    // FIXME: Security-scoped access ends when this callback returns,
+                    // but loadModel(from:) spawns an async Task that reads the file later.
+                    // When real llama.cpp I/O is wired, move the startAccessing/defer into
+                    // the Task inside ChatState.loadModel(from:) so access outlives the load.
                     guard url.startAccessingSecurityScopedResource() else {
                         importError = "Permission denied — cannot access the selected file."
                         return
