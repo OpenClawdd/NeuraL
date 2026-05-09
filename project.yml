@@ -35,6 +35,7 @@ targets:
       - framework: MetalKit.framework
       - framework: Speech.framework
       - framework: AVFoundation.framework
+      - framework: PDFKit.framework
       - sdk: libc++.tbd
 
   NeuraLTests:

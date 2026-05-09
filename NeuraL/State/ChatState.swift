@@ -21,9 +21,11 @@ final class ChatState: ObservableObject {
 
     @Published var modelMetadata: ModelMetadata?
     @Published var contextTokensUsed: Int = 0
+    @Published var importedDocuments: [ImportedDocument] = []
 
     let orchestrator = InferenceOrchestrator()
     let synthesizer = DreamSynthesizer()
+    let documentImporter = DocumentImporter()
     var conversation = Conversation()
 
     let defaultSystemPrompt = "You are a helpful assistant."
@@ -118,6 +120,17 @@ final class ChatState: ObservableObject {
                 modelMetadata = await orchestrator.loadedModelMetadata
             } catch {
                 messages.append(.systemPrompt("Model load failed: \(error.localizedDescription)"))
+            }
+        }
+    }
+
+    func importDocument(from url: URL) {
+        Task {
+            do {
+                let doc = try await documentImporter.importDocument(at: url)
+                importedDocuments.append(doc)
+            } catch {
+                messages.append(.systemPrompt("Document import failed: \(error.localizedDescription)"))
             }
         }
     }
