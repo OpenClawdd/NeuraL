@@ -1,0 +1,54 @@
+name: NeuraL
+options:
+  bundleIdPrefix: com.neural
+  deploymentTarget:
+    iOS: "17.0"
+
+targets:
+  NeuraL:
+    type: application
+    platform: iOS
+    sources:
+      - path: NeuraL
+    info:
+      path: NeuraL/Info.plist
+    entitlements:
+      path: Entitlements/NeuraL.entitlements
+    settings:
+      base:
+        SWIFT_OBJC_BRIDGING_HEADER: Bridging/BridgingHeader.h
+        HEADER_SEARCH_PATHS:
+          - $(inherited)
+          - $(SRCROOT)/llama.cpp/include
+          - $(SRCROOT)/llama.cpp/ggml/include
+          - $(SRCROOT)/llama.cpp
+        LIBRARY_SEARCH_PATHS:
+          - $(inherited)
+          - $(SRCROOT)/build/llama
+        OTHER_LDFLAGS:
+          - $(inherited)
+          - -lggml
+          - -lllama
+    dependencies:
+      - framework: Accelerate.framework
+      - framework: Metal.framework
+      - framework: MetalKit.framework
+      - framework: Speech.framework
+      - framework: AVFoundation.framework
+      - sdk: libc++.tbd
+
+  NeuraLTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: NeuraLTests
+    dependencies:
+      - target: NeuraL
+
+  NeuraLUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: NeuraLUITests
+    dependencies:
+      - target: NeuraL
