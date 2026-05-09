@@ -13,9 +13,15 @@ struct ChatView: View {
     @Binding var selectedTab: AppTab
     @FocusState private var inputFocused: Bool
 
-    init(chatState: ChatState = ChatState(), selectedTab: Binding<AppTab> = .constant(.chat)) {
+    @MainActor
+    init(chatState: ChatState, selectedTab: Binding<AppTab> = .constant(.chat)) {
         _chatState = State(initialValue: chatState)
         _selectedTab = selectedTab
+    }
+
+    @MainActor
+    init(selectedTab: Binding<AppTab> = .constant(.chat)) {
+        self.init(chatState: ChatState(), selectedTab: selectedTab)
     }
 
     var body: some View {
