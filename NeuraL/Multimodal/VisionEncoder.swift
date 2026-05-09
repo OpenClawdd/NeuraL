@@ -275,10 +275,8 @@ actor VisionEncoder {
     // MARK: - Projector Unloading
 
     func unloadProjector() {
-        if let ctx = clipContext {
-            clip_free(ctx)
-            clipContext = nil
-        }
+        // TODO: Re-enable CLIP cleanup once the iOS llama.cpp build links mtmd/clip symbols.
+        clipContext = nil
         configuration = nil
         state = .idle
         logger.info("Projector unloaded.")
@@ -296,9 +294,8 @@ actor VisionEncoder {
     }
 
     deinit {
-        if let ctx = clipContext {
-            clip_free(ctx)
-        }
+        // TODO: Re-enable CLIP cleanup once the iOS llama.cpp build links mtmd/clip symbols.
+        clipContext = nil
     }
 }
 
