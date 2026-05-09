@@ -25,7 +25,7 @@ actor InferenceOrchestrator {
             Task {
                 let chars = Array(text)
                 for (idx, ch) in chars.enumerated() {
-                    continuation.yield(EmittedToken(text: String(ch), tokenID: Int32(idx), isEndOfGeneration: false, cumulativeTokenCount: idx + 1, elapsedSeconds: 0, probability: 1))
+                    continuation.yield(EmittedToken(text: String(ch), tokenID: idx, isEndOfGeneration: false, cumulativeTokenCount: idx + 1, elapsedSeconds: 0, probability: 1))
                 }
                 continuation.yield(EmittedToken(text: "", tokenID: 0, isEndOfGeneration: true, cumulativeTokenCount: chars.count, elapsedSeconds: 0, probability: 1))
                 continuation.finish()

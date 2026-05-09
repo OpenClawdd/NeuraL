@@ -261,7 +261,7 @@ final class TokenStreamController: @unchecked Sendable {
 
         let token = EmittedToken(
             text: safeText,
-            tokenID: Int32(tokenID),
+            tokenID: tokenID,
             isEndOfGeneration: isEog,
             cumulativeTokenCount: tokenCount,
             elapsedSeconds: Double(elapsed.components.seconds) +

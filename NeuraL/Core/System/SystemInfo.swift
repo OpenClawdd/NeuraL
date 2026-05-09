@@ -115,10 +115,10 @@ final class SystemInfo {
         // Memory tier
         let totalGB = Double(totalRAM) / 1_073_741_824
         switch totalGB {
-        case ..<4:   self.memoryTier = .limited
-        case ..<8:   self.memoryTier = .standard
-        case ..<16:  self.memoryTier = .premium
-        default:     self.memoryTier = .extended
+        case ..<4:   self.memoryTier = DeviceCapabilityTier.limited
+        case ..<8:   self.memoryTier = DeviceCapabilityTier.standard
+        case ..<16:  self.memoryTier = DeviceCapabilityTier.premium
+        default:     self.memoryTier = DeviceCapabilityTier.extended
         }
 
         // Available memory (initial)
@@ -126,7 +126,7 @@ final class SystemInfo {
         self.availableMemory = available > 0 ? UInt64(available) : totalRAM / 2
 
         // Extended memory — we have the entitlement in our build
-        self.isExtendedMemoryEnabled = memoryTier == .extended || memoryTier == .premium
+        self.isExtendedMemoryEnabled = memoryTier == DeviceCapabilityTier.extended || memoryTier == DeviceCapabilityTier.premium
         self.extendedMemoryDescription = isExtendedMemoryEnabled
             ? NSLocalizedString("Enabled — Extended virtual addressing entitlement is active", comment: "")
             : NSLocalizedString("Not available — Device has limited memory for model context", comment: "")
