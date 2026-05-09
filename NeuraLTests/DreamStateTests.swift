@@ -117,4 +117,73 @@ final class DreamStateTests: XCTestCase {
             XCTAssertTrue(hasMLTerms || !card.tags.isEmpty)
         }
     }
+
+    // MARK: - DreamStore recovery
+
+    func testCorruptJSONDoesNotCrashLoad() {
+        let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("test-corrupt-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: tmp) }
+
+        let url = tmp.appendingPathComponent("dreamcards.json")
+        try? "not valid json {{{".write(to: url, atomically: true, encoding: .utf8)
+
+        let store = DreamStore(url: url)
+        XCTAssertTrue(store.cards.isEmpty, "Cards should be empty after corrupt load")
+    }
+
+    func testCorruptFileGetsBackedUp() {
+        let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("test-backup-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: tmp) }
+
+        let url = tmp.appendingPathComponent("dreamcards.json")
+        try? "garbage data {{{".write(to: url, atomically: true, encoding: .utf8)
+
+        _ = DreamStore(url: url)
+
+        let contents = (try? FileManager.default.contentsOfDirectory(atPath: tmp.path)) ?? []
+        let backups = contents.filter { $0.hasPrefix("dreamcards.corrupt-") }
+        XCTAssertFalse(backups.isEmpty, "Corrupt file should be backed up with timestamp")
+    }
+
+    func testCardsEmptyAfterCorruptRecovery() {
+        let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("test-empty-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: tmp) }
+
+        let url = tmp.appendingPathComponent("dreamcards.json")
+        try? "not json".write(to: url, atomically: true, encoding: .utf8)
+
+        let store = DreamStore(url: url)
+        XCTAssertTrue(store.cards.isEmpty)
+    }
+
+    func testRetentionKeepsNewestCards() {
+        let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("test-retention-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: tmp) }
+
+        let url = tmp.appendingPathComponent("dreamcards.json")
+        let store = DreamStore(url: url)
+
+        // Append 60 cards, retention of 50 should keep first 50 (newest, since inserted at 0)
+        for i in 0..<60 {
+            let card = DreamCard(title: "Card \(i)", summary: "s", nextAction: "n", rememberedTheme: nil, sourceMessageID: UUID(), confidence: 0.5, tags: [])
+            store.append(card, retention: .fifty)
+        }
+
+        XCTAssertEqual(store.cards.count, 50, "Retention should cap at 50 cards")
+    }
+
+    func testUnlimitedRetentionKeepsAll() {
+        let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("test-unlimited-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: tmp) }
+
+        let url = tmp.appendingPathComponent("dreamcards.json")
+        let store = DreamStore(url: url)
+
+        for i in 0..<120 {
+            let card = DreamCard(title: "Card \(i)", summary: "s", nextAction: "n", rememberedTheme: nil, sourceMessageID: UUID(), confidence: 0.5, tags: [])
+            store.append(card, retention: .unlimited)
+        }
+
+        XCTAssertEqual(store.cards.count, 120)
+    }
 }
