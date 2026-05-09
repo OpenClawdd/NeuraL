@@ -1,17 +1,51 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct DocumentsView: View {
-    let chatState: ChatState
-    @State private var docs: [String] = []
+    @ObservedObject var chatState: ChatState
+    @State private var showFileImporter = false
+    @State private var importError: String?
 
     var body: some View {
         NavigationStack {
             List {
                 Section("Knowledge Base") {
-                    if docs.isEmpty {
-                        ContentUnavailableView("No Documents", systemImage: "doc.text.magnifyingglass", description: Text("Import local documents for grounded responses."))
+                    if chatState.importedDocuments.isEmpty {
+                        ContentUnavailableView(
+                            "No Documents",
+                            systemImage: "doc.text.magnifyingglass",
+                            description: Text("Import local documents for grounded responses.")
+                        )
                     } else {
-                        ForEach(docs, id: \.self) { Text($0) }
+                        ForEach(chatState.importedDocuments) { doc in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(doc.filename)
+                                    .font(.body)
+                                HStack {
+                                    Text(doc.fileType.uppercased())
+                                        .font(.caption2.bold())
+                                        .foregroundStyle(.blue)
+                                    Text("·")
+                                        .foregroundStyle(.secondary)
+                                    Text("\(doc.chunkCount) chunks")
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                    Text("·")
+                                        .foregroundStyle(.secondary)
+                                    Text("~\(doc.totalEstimatedTokens) tokens")
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            .padding(.vertical, 2)
+                        }
+                    }
+                }
+                if let error = importError {
+                    Section("Import Error") {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.red)
                     }
                 }
                 Section("Local-only") {
@@ -21,6 +55,34 @@ struct DocumentsView: View {
                 }
             }
             .navigationTitle("Documents")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        showFileImporter = true
+                    } label: {
+                        Label("Import", systemImage: "doc.badge.plus")
+                    }
+                }
+            }
+            .fileImporter(
+                isPresented: $showFileImporter,
+                allowedContentTypes: [.text, .pdf, .plainText, UTType(filenameExtension: "md") ?? .text],
+                allowsMultipleSelection: false
+            ) { result in
+                switch result {
+                case .success(let urls):
+                    guard let url = urls.first else { return }
+                    guard url.startAccessingSecurityScopedResource() else {
+                        importError = "Permission denied — cannot access the selected file."
+                        return
+                    }
+                    defer { url.stopAccessingSecurityScopedResource() }
+                    importError = nil
+                    chatState.importDocument(from: url)
+                case .failure(let error):
+                    importError = error.localizedDescription
+                }
+            }
         }
     }
 }

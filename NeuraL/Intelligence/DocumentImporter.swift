@@ -21,6 +21,7 @@
 
 import Foundation
 import UniformTypeIdentifiers
+import PDFKit
 
 // MARK: - Document Import Error
 
@@ -317,32 +318,10 @@ actor DocumentImporter {
         return finalDocument
     }
 
-    /// Extract text from a PDF document using Core Graphics.
+    /// Extract text from a PDF document using PDFKit.
     private func extractPDFText(from url: URL) -> String {
-        guard let provider = // CGDataProvider(url: url as CFURL),
-              let pdfDoc = // CGPDFDocument(provider) else {
-            return ""
-        }
-
-        var text = ""
-        let pageCount = pdfDoc.numberOfPages
-
-        for i in 1...pageCount {
-            guard let page = pdfDoc.page(at: i) else { continue }
-
-            // Extract text using the PDF content stream
-            var pageText = ""
-            if let content = page.string {
-                pageText = content
-            }
-
-            if !pageText.isEmpty {
-                text += pageText
-                text += "\n\n"
-            }
-        }
-
-        return text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let pdf = PDFDocument(url: url) else { return "" }
+        return pdf.string ?? ""
     }
 }
 

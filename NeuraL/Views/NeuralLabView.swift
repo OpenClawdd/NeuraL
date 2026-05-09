@@ -3,9 +3,6 @@ import SwiftUI
 struct NeuralLabView: View {
     @ObservedObject var chatState: ChatState
     @State private var activeFeature: LabFeature.ID?
-    @State private var memoryEnabled = true
-    @State private var sourceLensEnabled = true
-    @State private var pulseCoachEnabled = true
 
     private let features = [
         LabFeature(
@@ -141,9 +138,60 @@ struct NeuralLabView: View {
         VStack(alignment: .leading, spacing: 14) {
             Label("Experience Toggles", systemImage: "switch.2")
                 .font(.headline)
-            Toggle("Pulse Coach Suggestions", isOn: $pulseCoachEnabled)
-            Toggle("Source Lens for documents", isOn: $sourceLensEnabled)
-            Toggle("Memory Pins", isOn: $memoryEnabled)
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "waveform.path.ecg")
+                        .foregroundStyle(.blue)
+                    Text("Pulse Coach")
+                        .font(.subheadline)
+                    Spacer()
+                    Text("Soon")
+                        .font(.caption2.bold())
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(Color.blue.opacity(0.15), in: Capsule())
+                }
+                Text("Adaptive suggestions based on conversation momentum. This feature is queued for a future update.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Divider()
+
+                HStack {
+                    Image(systemName: "doc.text.magnifyingglass")
+                        .foregroundStyle(.teal)
+                    Text("Source Lens")
+                        .font(.subheadline)
+                    Spacer()
+                    Text("Soon")
+                        .font(.caption2.bold())
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(Color.teal.opacity(0.15), in: Capsule())
+                }
+                Text("Document-aware responses with citations. Depends on RAG pipeline completion.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Divider()
+
+                HStack {
+                    Image(systemName: "pin.fill")
+                        .foregroundStyle(.orange)
+                    Text("Memory Pins")
+                        .font(.subheadline)
+                    Spacer()
+                    Text("Soon")
+                        .font(.caption2.bold())
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(Color.orange.opacity(0.15), in: Capsule())
+                }
+                Text("Pin key answers so the workspace keeps what matters visible.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .labPanel()
     }

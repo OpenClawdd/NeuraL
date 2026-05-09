@@ -21,9 +21,14 @@ final class ChatState: ObservableObject {
 
     @Published var modelMetadata: ModelMetadata?
     @Published var contextTokensUsed: Int = 0
+    @Published var importedDocuments: [ImportedDocument] = []
+    @Published var swarmSnapshot = SwarmSnapshot()
+    @Published var shadowInsights: [ShadowInsight] = []
+    @Published var pinnedVisibleMessages: [ChatMessage] = []
 
     let orchestrator = InferenceOrchestrator()
     let synthesizer = DreamSynthesizer()
+    let documentImporter = DocumentImporter()
     var conversation = Conversation()
 
     let defaultSystemPrompt = "You are a helpful assistant."
@@ -111,6 +116,33 @@ final class ChatState: ObservableObject {
 
     func unloadModel() { Task { await orchestrator.unloadModel() }; modelMetadata = nil }
 
+    func loadModel(from url: URL) {
+        Task {
+            do {
+                try await orchestrator.loadModel(path: url.path, config: .default)
+                modelMetadata = await orchestrator.loadedModelMetadata
+            } catch {
+                messages.append(.systemPrompt("Model load failed: \(error.localizedDescription)"))
+            }
+        }
+    }
+
+    func importDocument(from url: URL) {
+        Task {
+            do {
+                let doc = try await documentImporter.importDocument(at: url)
+                importedDocuments.append(doc)
+            } catch {
+                messages.append(.systemPrompt("Document import failed: \(error.localizedDescription)"))
+            }
+        }
+    }
+
+    func runShadowSynthesis() {
+        // Placeholder: shadow synthesis runs via background task.
+        // Will scan recent dreams and conversation context for proactive insights.
+    }
+
     private func persistDreamSettings() {
         storedTraceVisibility = dreamSettings.traceVisibility.rawValue
         storedRawTraceAccess = dreamSettings.rawTraceAccess
@@ -126,4 +158,25 @@ final class ChatState: ObservableObject {
         dreamSettings.retention = DreamStateSettings.Retention(rawValue: storedRetention) ?? .hundred
         applyRetention()
     }
+}
+
+// MARK: - NeuralLab stub types (wired when features land)
+
+struct SwarmSnapshot: Equatable {
+    enum State: String, Equatable { case idle = "Idle" }
+    struct Local: Equatable { var tokensPerSecond: Double = 0 }
+    struct Remote: Equatable { var modelName: String = ""; var tokensPerSecond: Double = 0 }
+
+    var state: State = .idle
+    var local: Local = Local()
+    var consensusScore: Double = 0
+    var remote: Remote? = nil
+    var critique: String = "Local-only mode active. Swarm features require configured remotes."
+}
+
+struct ShadowInsight: Identifiable, Equatable {
+    let id = UUID()
+    var title: String = ""
+    var summary: String = ""
+    var confidence: Double = 0
 }

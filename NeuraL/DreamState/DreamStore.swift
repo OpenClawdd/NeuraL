@@ -13,6 +13,13 @@ final class DreamStore: ObservableObject {
         load(retention: .hundred)
     }
 
+    init(url: URL, fileManager: FileManager = .default) {
+        let dir = url.deletingLastPathComponent()
+        try? fileManager.createDirectory(at: dir, withIntermediateDirectories: true)
+        self.url = url
+        load(retention: .hundred)
+    }
+
     func load(retention: DreamStateSettings.Retention = .hundred) {
         guard let data = try? Data(contentsOf: url) else { cards = []; return }
         guard let decoded = try? JSONDecoder().decode([DreamCard].self, from: data) else {
