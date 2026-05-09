@@ -522,11 +522,11 @@ struct ShareSheetView: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
-// MARK: - Settings View (Phase 7 Hub)
+// MARK: - Personalization Hub View (Phase 7 Hub)
 
 /// A settings view that serves as the hub for all Phase 7 personalization.
 /// Frutiger Aero: frosted group boxes with glossy navigation links.
-struct SettingsView: View {
+struct PersonalizationHubView: View {
     let chatState: ChatState
 
     var body: some View {

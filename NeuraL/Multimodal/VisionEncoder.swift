@@ -20,7 +20,7 @@ import os
 /// Represents an image attached to a chat message. Stored as compressed
 /// JPEG data at two resolutions: a small thumbnail for UI display, and
 /// a full-resolution version for model encoding.
-struct ImageAttachment: Sendable, Identifiable, Codable {
+struct ImageAttachment: Sendable, Identifiable, Codable, Equatable {
     let id: UUID
     let name: String
     let thumbnailData: Data

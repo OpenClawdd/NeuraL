@@ -12,7 +12,7 @@ actor LlamaCppBridge {
     private var sampler: UnsafeMutablePointer<llama_sampler>?
 
     init() {
-        _ = Self.initializeBackend
+        llama_backend_init()
     }
 
     deinit {
@@ -55,9 +55,10 @@ actor LlamaCppBridge {
     func getModelMetadata() -> ModelMetadata {
         guard let m = model else { return ModelMetadata() }
         let vocab = llama_model_get_vocab(m)
-        let nVocab = llama_vocab_size(vocab)
-        let archCStr = llama_model_arch(m) ?? ""
-        let arch = String(cString: archCStr)
+        let nVocab = llama_vocab_n_tokens(vocab)
+        var descriptionBuffer = [CChar](repeating: 0, count: 256)
+        llama_model_desc(m, &descriptionBuffer, descriptionBuffer.count)
+        let arch = String(cString: descriptionBuffer)
         return ModelMetadata(
             architecture: arch,
             layerCount: Int(llama_model_n_layer(m)),
@@ -170,11 +171,10 @@ actor LlamaCppBridge {
         AsyncThrowingStream { continuation in
             Task {
                 let vocab = llama_model_get_vocab(snapshot.model)
-                let chain = llama_sampler_chain_init(vocab)
+                let chain = llama_sampler_chain_init(llama_sampler_chain_default_params())
                 llama_sampler_chain_add(chain, llama_sampler_init_temp(params.temperature))
                 llama_sampler_chain_add(chain, llama_sampler_init_top_k(params.topK))
                 llama_sampler_chain_add(chain, llama_sampler_init_top_p(params.topP, 1))
-                llama_sampler_chain_add(chain, llama_sampler_init_softmax())
                 if let seed = params.seed {
                     llama_sampler_chain_add(chain, llama_sampler_init_dist(UInt32(truncatingIfNeeded: seed)))
                 }
@@ -198,7 +198,7 @@ actor LlamaCppBridge {
                         break
                     }
 
-                    let text = String(cString: llama_token_to_str(vocab, token))
+                    let text = String(cString: llama_vocab_get_text(vocab, token))
                     continuation.yield(EmittedToken(
                         text: text,
                         tokenID: Int(token),

@@ -75,13 +75,13 @@ enum DocumentChunker {
 
             var actualEnd = endIndex
             // Prefer paragraph break
-            if let paraBreak = breakSearch.lastIndex(of: "\n\n") {
-                let adjustedOffset = text.distance(from: searchRange.lowerBound, to: paraBreak)
+            if let paraRange = breakSearch.range(of: "\n\n", options: .backwards) {
+                let adjustedOffset = breakSearch.distance(from: breakSearch.startIndex, to: paraRange.lowerBound)
                 actualEnd = text.index(searchRange.lowerBound, offsetBy: adjustedOffset)
             }
             // Fallback: sentence break
-            else if let sentBreak = breakSearch.lastIndex(of: ". ") {
-                let adjustedOffset = text.distance(from: searchRange.lowerBound, to: sentBreak) + 1
+            else if let sentRange = breakSearch.range(of: ". ", options: .backwards) {
+                let adjustedOffset = breakSearch.distance(from: breakSearch.startIndex, to: sentRange.upperBound)
                 actualEnd = text.index(searchRange.lowerBound, offsetBy: adjustedOffset)
             }
             // Fallback: newline

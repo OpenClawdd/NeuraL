@@ -1,9 +1,6 @@
 import Foundation
 
-struct ImageAttachment: Codable, Sendable, Equatable {
-    var filename: String
-    var data: Data
-}
+// ImageAttachment is defined in NeuraL/Multimodal/VisionEncoder.swift.
 
 struct FunctionCallRecord: Codable, Sendable, Equatable {
     var toolName: String
@@ -118,6 +115,24 @@ struct Conversation: Codable, Sendable {
 
     mutating func append(_ message: ChatMessage) {
         messages.append(message)
+    }
+
+    mutating func evictOldestTurn() -> Int {
+        guard let userIndex = messages.firstIndex(where: { $0.role == .user }) else {
+            return 0
+        }
+
+        var removedMessages: [ChatMessage] = [messages[userIndex]]
+        messages.remove(at: userIndex)
+
+        if userIndex < messages.count, messages[userIndex].role == .assistant {
+            removedMessages.append(messages[userIndex])
+            messages.remove(at: userIndex)
+        }
+
+        return removedMessages.reduce(0) { total, message in
+            total + (message.tokenInfo?.totalTokenCount ?? max(1, message.content.utf8.count / 4))
+        }
     }
 
     var conversationalMessages: [ChatMessage] { messages.filter { $0.role != .system } }
