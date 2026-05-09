@@ -111,6 +111,17 @@ final class ChatState: ObservableObject {
 
     func unloadModel() { Task { await orchestrator.unloadModel() }; modelMetadata = nil }
 
+    func loadModel(from url: URL) {
+        Task {
+            do {
+                try await orchestrator.loadModel(path: url.path, config: .default)
+                modelMetadata = await orchestrator.loadedModelMetadata
+            } catch {
+                messages.append(.systemPrompt("Model load failed: \(error.localizedDescription)"))
+            }
+        }
+    }
+
     private func persistDreamSettings() {
         storedTraceVisibility = dreamSettings.traceVisibility.rawValue
         storedRawTraceAccess = dreamSettings.rawTraceAccess
