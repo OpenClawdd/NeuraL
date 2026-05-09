@@ -10,14 +10,26 @@ struct DreamSynthesizer {
         importedDocumentNames: [String],
         sourceMessageID: UUID
     ) -> DreamCard {
-        let lines = assistantAnswer.split(separator: "\n").map(String.init)
+        let trimmedAnswer = assistantAnswer.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedAnswer.isEmpty else {
+            return DreamCard(
+                title: "Reflection",
+                summary: "No answer was generated for this turn.",
+                nextAction: "Try rephrasing your prompt or checking the model context window.",
+                rememberedTheme: importedDocumentNames.first,
+                sourceMessageID: sourceMessageID,
+                confidence: 0.0,
+                tags: []
+            )
+        }
+        let lines = trimmedAnswer.split(separator: "\n").map(String.init)
         let nextAction = lines.first { $0.trimmingCharacters(in: .whitespaces).hasPrefix("-") || $0.trimmingCharacters(in: .whitespaces).first?.isNumber == true }?
             .replacingOccurrences(of: "^-|^\\d+[\\.)]\\s*", with: "", options: .regularExpression) ?? "Refine this idea into the next local step."
 
-        let title = String(assistantAnswer.prefix(60)).trimmingCharacters(in: .whitespacesAndNewlines)
-        let summary = String(assistantAnswer.prefix(220)).trimmingCharacters(in: .whitespacesAndNewlines)
-        let tags = extractTags(from: [latestUserPrompt, assistantAnswer, selectedNeuralMode] + pinnedMessages + importedDocumentNames)
-        let confidence = confidenceScore(prompt: latestUserPrompt, answer: assistantAnswer, trace: reasoningTrace)
+        let title = String(trimmedAnswer.prefix(60)).trimmingCharacters(in: .whitespacesAndNewlines)
+        let summary = String(trimmedAnswer.prefix(220)).trimmingCharacters(in: .whitespacesAndNewlines)
+        let tags = extractTags(from: [latestUserPrompt, trimmedAnswer, selectedNeuralMode] + pinnedMessages + importedDocumentNames)
+        let confidence = confidenceScore(prompt: latestUserPrompt, answer: trimmedAnswer, trace: reasoningTrace)
 
         return DreamCard(
             title: title.isEmpty ? "Dream formed" : title,
