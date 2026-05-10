@@ -1,6 +1,8 @@
 import SwiftUI
 
-enum AppTab: String, CaseIterable {
+enum AppTab: String, CaseIterable, Identifiable {
+    var id: String { rawValue }
+
     case chat
     case models
     case knowledge

@@ -12,9 +12,12 @@ struct NeuraLApp: App {
             Group {
                 if sizeClass == .regular {
                     NavigationSplitView {
-                        List(AppTab.allCases, id: \.self, selection: $selectedTab) { tab in
-                            NavigationLink(value: tab) {
-                                Label(tab.title, systemImage: tab.icon)
+                        List(selection: $selectedTab) {
+                            ForEach(AppTab.allCases) { tab in
+                                NavigationLink(value: tab) {
+                                    Label(tab.title, systemImage: tab.icon)
+                                }
+                                .tag(tab)
                             }
                         }
                         .navigationTitle("NeuraL")
