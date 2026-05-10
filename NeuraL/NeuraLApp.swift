@@ -54,6 +54,9 @@ struct ContentView: View {
             }
         }
         .tint(.blue)
+        .fullScreenCover(isPresented: .init(get: { !chatState.hasCompletedOnboarding }, set: { _ in })) {
+            OnboardingView(chatState: chatState)
+        }
         .onChange(of: scenePhase) { oldPhase, newPhase in
             switch newPhase {
             case .background:

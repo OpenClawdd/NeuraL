@@ -14,6 +14,7 @@ final class ChatState: ObservableObject {
     @AppStorage("dream_raw_trace_access") private var storedRawTraceAccess = false
     @AppStorage("dream_auto_create") private var storedAutoCreateDreams = true
     @AppStorage("dream_retention") private var storedRetention = DreamStateSettings.Retention.hundred.rawValue
+    @AppStorage("has_completed_onboarding") var hasCompletedOnboarding: Bool = false
 
     @Published var dreamSettings = DreamStateSettings() {
         didSet { persistDreamSettings() }

@@ -139,20 +139,20 @@ struct NeuralLabView: View {
             Label("Experience Toggles", systemImage: "switch.2")
                 .font(.headline)
 
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Image(systemName: "waveform.path.ecg")
                         .foregroundStyle(.blue)
                     Text("Pulse Coach")
                         .font(.subheadline)
                     Spacer()
-                    Text("Soon")
+                    Text("Roadmap")
                         .font(.caption2.bold())
                         .padding(.horizontal, 8)
                         .padding(.vertical, 2)
                         .background(Color.blue.opacity(0.15), in: Capsule())
                 }
-                Text("Adaptive suggestions based on conversation momentum. This feature is queued for a future update.")
+                Text("Adaptive suggestions based on conversation momentum. Requires intent-classification logic to be wired to the inference engine.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
@@ -164,13 +164,13 @@ struct NeuralLabView: View {
                     Text("Source Lens")
                         .font(.subheadline)
                     Spacer()
-                    Text("Soon")
+                    Text("Preview")
                         .font(.caption2.bold())
                         .padding(.horizontal, 8)
                         .padding(.vertical, 2)
                         .background(Color.teal.opacity(0.15), in: Capsule())
                 }
-                Text("Document-aware responses with citations. Depends on RAG pipeline completion.")
+                Text("Document-aware responses with citations. Currently in internal testing using a local RAG pipeline.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
@@ -182,13 +182,13 @@ struct NeuralLabView: View {
                     Text("Memory Pins")
                         .font(.subheadline)
                     Spacer()
-                    Text("Soon")
+                    Text("Roadmap")
                         .font(.caption2.bold())
                         .padding(.horizontal, 8)
                         .padding(.vertical, 2)
                         .background(Color.orange.opacity(0.15), in: Capsule())
                 }
-                Text("Pin key answers so the workspace keeps what matters visible.")
+                Text("Persistent UI elements for critical model outputs. UI layout for multi-pin view is in design phase.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

@@ -26,7 +26,9 @@ struct ChatView: View {
                 VStack(spacing: 12) {
                     topStatus
 
-                    if chatState.messages.isEmpty && !chatState.isGenerating {
+                    if chatState.modelMetadata == nil {
+                        noModelEmptyState
+                    } else if chatState.messages.isEmpty && !chatState.isGenerating {
                         starterPrompts
                     }
 
@@ -101,13 +103,47 @@ struct ChatView: View {
 
     private var composer: some View {
         HStack(spacing: 8) {
-            TextField("Message NeuraL", text: $chatState.inputText, axis: .vertical)
+            TextField(chatState.modelMetadata == nil ? "Load a model to chat" : "Message NeuraL", text: $chatState.inputText, axis: .vertical)
                 .focused($inputFocused)
                 .textFieldStyle(.roundedBorder)
+                .disabled(chatState.modelMetadata == nil)
             Button(action: chatState.sendCurrentInput) {
                 Image(systemName: "arrow.up.circle.fill").font(.title2)
             }
-            .disabled(chatState.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || chatState.isGenerating)
+            .disabled(chatState.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || chatState.isGenerating || chatState.modelMetadata == nil)
+        }
+    }
+
+    private var noModelEmptyState: some View {
+        VStack(spacing: 20) {
+            Spacer()
+
+            Image(systemName: "cpu.fill")
+                .font(.system(size: 60))
+                .foregroundStyle(.blue.gradient)
+                .padding()
+                .background(.ultraThinMaterial, in: Circle())
+
+            VStack(spacing: 8) {
+                Text("On-Device Cognitive Core Idle")
+                    .font(.headline)
+                Text("NeuraL needs a GGUF model to begin inference. All processing happens locally on your hardware.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+            }
+
+            Button {
+                selectedTab = .models
+            } label: {
+                Label("Go to Models", systemImage: "arrow.right.circle.fill")
+                    .font(.headline)
+            }
+            .buttonStyle(.borderedProminent)
+            .clipShape(Capsule())
+
+            Spacer()
         }
     }
 }

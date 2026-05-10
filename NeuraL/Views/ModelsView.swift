@@ -93,11 +93,16 @@ struct ModelsView: View {
                 Text("Neural Engine Ready")
                     .font(.largeTitle.bold())
 
-                Text("No local model is currently loaded. NeuraL needs a GGUF file to begin on-device cognition.")
+                Text("NeuraL needs a GGUF model file to begin on-device cognition. You can find these on community hubs like Hugging Face.")
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
+
+                Text("Format: .gguf (Llama, Mistral, Gemma, etc.)")
+                    .font(.caption.bold())
+                    .foregroundStyle(.blue.opacity(0.8))
+                    .padding(.top, 4)
             }
 
             Button {
