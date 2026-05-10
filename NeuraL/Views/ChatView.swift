@@ -1,17 +1,10 @@
 import SwiftUI
 
-enum AppTab: String, CaseIterable {
-    case chat
-    case models
-    case knowledge
-    case lab
-    case system
-}
-
 struct ChatView: View {
     @State private var chatState: ChatState
     @Binding var selectedTab: AppTab
     @FocusState private var inputFocused: Bool
+    @Environment(\.horizontalSizeClass) private var sizeClass
 
     @MainActor
     init(chatState: ChatState, selectedTab: Binding<AppTab> = .constant(.chat)) {
@@ -64,7 +57,8 @@ struct ChatView: View {
 
                     composer
                 }
-                .padding()
+                .padding(.vertical)
+                .padding(.horizontal, sizeClass == .regular ? 40 : 16)
             }
             .navigationTitle("NeuraL")
         }

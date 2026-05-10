@@ -18,6 +18,7 @@ targets:
       path: Entitlements/NeuraL.entitlements
     settings:
       base:
+        TARGETED_DEVICE_FAMILY: "1,2"
         SWIFT_OBJC_BRIDGING_HEADER: Bridging/BridgingHeader.h
         HEADER_SEARCH_PATHS:
           - $(inherited)

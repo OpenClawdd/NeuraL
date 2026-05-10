@@ -4,32 +4,50 @@ import SwiftUI
 struct NeuraLApp: App {
     @StateObject private var chatState = ChatState()
     @Environment(\.scenePhase) private var scenePhase
-
-    init() {
-        BackgroundSynthesisScheduler.shared.register()
-    }
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    @State private var selectedTab: AppTab = .chat
 
     var body: some Scene {
         WindowGroup {
-            TabView {
-                ChatView(chatState: chatState)
-                    .tabItem { Label("Chat", systemImage: "bubble.left.and.bubble.right") }
+            Group {
+                if sizeClass == .regular {
+                    NavigationSplitView {
+                        List(AppTab.allCases, id: \.self, selection: $selectedTab) { tab in
+                            NavigationLink(value: tab) {
+                                Label(tab.title, systemImage: tab.icon)
+                            }
+                        }
+                        .navigationTitle("NeuraL")
+                    } detail: {
+                        detailView(for: selectedTab)
+                    }
+                } else {
+                    TabView(selection: $selectedTab) {
+                        ChatView(chatState: chatState)
+                            .tabItem { Label("Chat", systemImage: "bubble.left.and.bubble.right") }
+                            .tag(AppTab.chat)
 
-                ModelsView(chatState: chatState)
-                    .tabItem { Label("Models", systemImage: "cube") }
+                        ModelsView(chatState: chatState)
+                            .tabItem { Label("Models", systemImage: "cube") }
+                            .tag(AppTab.models)
 
-                DocumentsView(chatState: chatState)
-                    .tabItem { Label("Knowledge", systemImage: "doc.text.magnifyingglass") }
+                        DocumentsView(chatState: chatState)
+                            .tabItem { Label("Knowledge", systemImage: "doc.text.magnifyingglass") }
+                            .tag(AppTab.knowledge)
 
-                NeuralLabView(chatState: chatState)
-                    .tabItem { Label("Lab", systemImage: "sparkles") }
+                        NeuralLabView(chatState: chatState)
+                            .tabItem { Label("Lab", systemImage: "sparkles") }
+                            .tag(AppTab.lab)
 
-                SystemStatusView(chatState: chatState)
-                    .tabItem { Label("System", systemImage: "cpu") }
+                        SystemStatusView(chatState: chatState)
+                            .tabItem { Label("System", systemImage: "cpu") }
+                            .tag(AppTab.system)
+                    }
+                }
             }
             .tint(.blue)
-            .onChange(of: scenePhase) {
-                switch scenePhase {
+            .onChange(of: scenePhase) { oldPhase, newPhase in
+                switch newPhase {
                 case .background:
                     chatState.runShadowSynthesis()
                     BackgroundSynthesisScheduler.shared.schedule()
@@ -43,7 +61,24 @@ struct NeuraLApp: App {
             }
         }
     }
+
+    @ViewBuilder
+    private func detailView(for tab: AppTab) -> some View {
+        switch tab {
+        case .chat:
+            ChatView(chatState: chatState)
+        case .models:
+            ModelsView(chatState: chatState)
+        case .knowledge:
+            DocumentsView(chatState: chatState)
+        case .lab:
+            NeuralLabView(chatState: chatState)
+        case .system:
+            SystemStatusView(chatState: chatState)
+        }
+    }
 }
+
 
 
 // p.s. code is looking clean bro, keep cooking 🔥

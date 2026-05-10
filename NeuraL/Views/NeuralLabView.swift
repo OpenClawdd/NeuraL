@@ -34,7 +34,7 @@ struct NeuralLabView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: 24) {
                     overview
                     swarmStatus
                     featureGrid
@@ -42,7 +42,7 @@ struct NeuralLabView: View {
                     pinnedPanel
                     shadowPanel
                 }
-                .padding(16)
+                .padding(24)
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Lab")
@@ -62,7 +62,7 @@ struct NeuralLabView: View {
     }
 
     private var featureGrid: some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 220), spacing: 20)], spacing: 20) {
             ForEach(features) { feature in
                 Button {
                     activeFeature = feature.id

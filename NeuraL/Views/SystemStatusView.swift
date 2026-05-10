@@ -6,17 +6,19 @@ struct SystemStatusView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 12) {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 300), spacing: 16)], spacing: 16) {
                     panel("Device") { Text("iOS local runtime ready") }
                     panel("Memory") { Text("Optimized for on-device cognition workflows") }
                     panel("Inference") {
-                        Text(chatState.isGenerating ? "Neural Pulse active" : "Idle")
-                        Text("Mode: Local-only")
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(chatState.isGenerating ? "Neural Pulse active" : "Idle")
+                            Text("Mode: Local-only")
+                        }
                     }
                 }
-                .padding()
+                .padding(20)
             }
-            .background(LinearGradient(colors: [Color.cyan.opacity(0.2), .white], startPoint: .topLeading, endPoint: .bottomTrailing))
+            .background(LinearGradient(colors: [Color.cyan.opacity(0.1), .white], startPoint: .topLeading, endPoint: .bottomTrailing))
             .navigationTitle("System")
         }
     }
