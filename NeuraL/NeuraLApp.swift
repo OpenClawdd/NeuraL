@@ -14,7 +14,7 @@ struct ContentView: View {
     @ObservedObject var chatState: ChatState
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.horizontalSizeClass) private var sizeClass
-    @State private var selectedTab: AppTab = .chat
+    @State private var selectedTab: AppTab? = .chat
 
     var body: some View {
         Group {
@@ -30,7 +30,7 @@ struct ContentView: View {
                     detailView(for: selectedTab)
                 }
             } else {
-                TabView(selection: $selectedTab) {
+                TabView(selection: Binding(get: { selectedTab ?? .chat }, set: { selectedTab = $0 })) {
                     ChatView(chatState: chatState)
                         .tabItem { Label("Chat", systemImage: "bubble.left.and.bubble.right") }
                         .tag(AppTab.chat)
@@ -70,8 +70,8 @@ struct ContentView: View {
     }
 
     @ViewBuilder
-    private func detailView(for tab: AppTab) -> some View {
-        switch tab {
+    private func detailView(for tab: AppTab?) -> some View {
+        switch tab ?? .chat {
         case .chat:
             ChatView(chatState: chatState)
         case .models:
