@@ -20,12 +20,9 @@ struct ContentView: View {
         Group {
             if sizeClass == .regular {
                 NavigationSplitView {
-                    List(selection: $selectedTab) {
-                        ForEach(AppTab.allCases) { tab in
-                            NavigationLink(value: tab) {
-                                Label(tab.title, systemImage: tab.icon)
-                            }
-                            .tag(tab)
+                    List(AppTab.allCases, selection: $selectedTab) { tab in
+                        NavigationLink(value: tab) {
+                            Label(tab.title, systemImage: tab.icon)
                         }
                     }
                     .navigationTitle("NeuraL")
@@ -87,7 +84,6 @@ struct ContentView: View {
             SystemStatusView(chatState: chatState)
         }
     }
-}
 }
 
 
