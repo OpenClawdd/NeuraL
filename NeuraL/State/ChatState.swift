@@ -15,6 +15,9 @@ final class ChatState: ObservableObject {
     @AppStorage("dream_auto_create") private var storedAutoCreateDreams = true
     @AppStorage("dream_retention") private var storedRetention = DreamStateSettings.Retention.hundred.rawValue
     @AppStorage("has_completed_onboarding") var hasCompletedOnboarding: Bool = false
+    @AppStorage("imported_model_path") var importedModelPath: String = ""
+
+    @Published var engineState: EngineState = .idle
 
     @Published var dreamSettings = DreamStateSettings() {
         didSet { persistDreamSettings() }
@@ -56,7 +59,21 @@ final class ChatState: ObservableObject {
 
         Task {
             do {
-                let stream = await orchestrator.generate(promptTokens: [0], parameters: .default)
+                let promptTokens = try await orchestrator.tokenize(text: text)
+                
+                // Smoke test parameters
+                let params = GenerationParameters(
+                    maxTokens: 128,
+                    temperature: 0.7,
+                    topP: 0.9,
+                    topK: 40,
+                    repeatPenalty: 1.1,
+                    repeatPenaltyWindowSize: 64,
+                    stopTokens: ["</s>", "<|end|>", "<|im_end|>", "<|eot_id|>"],
+                    seed: nil
+                )
+                
+                let stream = await orchestrator.generate(promptTokens: promptTokens, parameters: params)
                 var raw = ""
                 for try await token in stream {
                     if token.isEndOfGeneration { break }
@@ -117,12 +134,47 @@ final class ChatState: ObservableObject {
 
     func unloadModel() { Task { await orchestrator.unloadModel() }; modelMetadata = nil }
 
-    func loadModel(from url: URL) {
+    func importModel(from url: URL) {
         Task {
             do {
-                try await orchestrator.loadModel(path: url.path, config: .default)
-                modelMetadata = await orchestrator.loadedModelMetadata
+                let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+                let destURL = docsURL.appendingPathComponent(url.lastPathComponent)
+                
+                if FileManager.default.fileExists(atPath: destURL.path) {
+                    try FileManager.default.removeItem(at: destURL)
+                }
+                
+                _ = url.startAccessingSecurityScopedResource()
+                defer { url.stopAccessingSecurityScopedResource() }
+                
+                try FileManager.default.copyItem(at: url, to: destURL)
+                
+                importedModelPath = destURL.lastPathComponent
+                messages.append(.systemPrompt("Model imported: \(destURL.lastPathComponent). Ready to load."))
             } catch {
+                messages.append(.systemPrompt("Model import failed: \(error.localizedDescription)"))
+            }
+        }
+    }
+
+    func loadModel() {
+        guard !importedModelPath.isEmpty else { return }
+        let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let modelURL = docsURL.appendingPathComponent(importedModelPath)
+        
+        guard FileManager.default.fileExists(atPath: modelURL.path) else {
+            engineState = .error(InferenceError.modelNotFound(path: modelURL.path))
+            return
+        }
+
+        Task {
+            engineState = .loading(progress: 0.0)
+            do {
+                try await orchestrator.loadModel(path: modelURL.path, config: .default)
+                modelMetadata = await orchestrator.loadedModelMetadata
+                engineState = .ready
+            } catch {
+                engineState = .error(error as? InferenceError ?? InferenceError.backendInitializationFailed(detail: error.localizedDescription))
                 messages.append(.systemPrompt("Model load failed: \(error.localizedDescription)"))
             }
         }

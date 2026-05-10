@@ -9,47 +9,25 @@ struct ModelsView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if chatState.modelMetadata == nil {
-                    emptyState
-                } else {
+                if chatState.modelMetadata != nil {
                     ScrollView {
                         VStack(spacing: 20) {
                             modelHeader
-
-                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 300), spacing: 20)], spacing: 20) {
-                                card(title: "Runtime", icon: "bolt.shield") {
-                                    Text("Local-only runtime. No API keys, no cloud bridge in default path.")
-                                }
-
-                                card(title: "Architecture", icon: "cpu") {
-                                    if let meta = chatState.modelMetadata {
-                                        Text(meta.architecture)
-                                            .font(.title3.bold())
-                                            .foregroundStyle(.primary)
-                                    }
-                                }
-
-                                card(title: "Quantization", icon: "scalemass") {
-                                    if let meta = chatState.modelMetadata {
-                                        Text(meta.quantization)
-                                            .font(.title3.bold())
-                                            .foregroundStyle(.primary)
-                                    }
-                                }
-
-                                card(title: "Context", icon: "arrow.left.and.right.text.vertical") {
-                                    if let meta = chatState.modelMetadata {
-                                        Text("\(meta.trainingContextLength) tokens")
-                                            .font(.title3.bold())
-                                            .foregroundStyle(.primary)
-                                    }
-                                }
-                            }
-
+                            metricsGrid
                             importCard
                         }
                         .padding(24)
                     }
+                } else if !chatState.importedModelPath.isEmpty {
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            importedModelHeader
+                            importCard
+                        }
+                        .padding(24)
+                    }
+                } else {
+                    emptyState
                 }
             }
             .background(LinearGradient(colors: [.white, Color.blue.opacity(0.05)], startPoint: .top, endPoint: .bottom))
@@ -62,17 +40,8 @@ struct ModelsView: View {
                 switch result {
                 case .success(let urls):
                     guard let url = urls.first else { return }
-                    // FIXME: Security-scoped access ends when this callback returns,
-                    // but loadModel(from:) spawns an async Task that reads the file later.
-                    // When real llama.cpp I/O is wired, move the startAccessing/defer into
-                    // the Task inside ChatState.loadModel(from:) so access outlives the load.
-                    guard url.startAccessingSecurityScopedResource() else {
-                        importError = "Permission denied — cannot access the selected file."
-                        return
-                    }
-                    defer { url.stopAccessingSecurityScopedResource() }
                     importError = nil
-                    chatState.loadModel(from: url)
+                    chatState.importModel(from: url)
                 case .failure(let error):
                     importError = error.localizedDescription
                 }
@@ -147,6 +116,86 @@ struct ModelsView: View {
                 Label("Unload", systemImage: "eject.fill")
             }
             .buttonStyle(.bordered)
+        }
+        .padding(20)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
+    }
+
+    private var metricsGrid: some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 300), spacing: 20)], spacing: 20) {
+            card(title: "Runtime", icon: "bolt.shield") {
+                Text("Local-only runtime. No API keys, no cloud bridge in default path.")
+            }
+
+            card(title: "Architecture", icon: "cpu") {
+                if let meta = chatState.modelMetadata {
+                    Text(meta.architecture)
+                        .font(.title3.bold())
+                        .foregroundStyle(.primary)
+                }
+            }
+
+            card(title: "Quantization", icon: "scalemass") {
+                if let meta = chatState.modelMetadata {
+                    Text(meta.quantization.isEmpty ? "Unknown" : meta.quantization)
+                        .font(.title3.bold())
+                        .foregroundStyle(.primary)
+                }
+            }
+
+            card(title: "Context", icon: "arrow.left.and.right.text.vertical") {
+                if let meta = chatState.modelMetadata {
+                    Text("\(meta.trainingContextLength) tokens")
+                        .font(.title3.bold())
+                        .foregroundStyle(.primary)
+                }
+            }
+        }
+    }
+
+    private var importedModelHeader: some View {
+        HStack(spacing: 16) {
+            Image(systemName: "doc.zipper")
+                .font(.title)
+                .foregroundStyle(.white)
+                .frame(width: 60, height: 60)
+                .background(Color.purple.gradient, in: RoundedRectangle(cornerRadius: 16))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Imported File")
+                    .font(.caption.bold())
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
+
+                Text(chatState.importedModelPath)
+                    .font(.headline)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    
+                if case .error(let err) = chatState.engineState {
+                    Text(err.localizedDescription)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                } else if case .loading(let p) = chatState.engineState {
+                    Text("Loading... \(Int(p * 100))%")
+                        .font(.caption)
+                        .foregroundStyle(.blue)
+                }
+            }
+
+            Spacer()
+
+            Button {
+                chatState.loadModel()
+            } label: {
+                if case .loading = chatState.engineState {
+                    ProgressView()
+                } else {
+                    Label("Load Engine", systemImage: "bolt.fill")
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(chatState.engineState == .loading(progress: 0))
         }
         .padding(20)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))

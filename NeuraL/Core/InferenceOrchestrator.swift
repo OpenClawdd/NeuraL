@@ -4,32 +4,31 @@ actor InferenceOrchestrator {
     var loadedModelMetadata: ModelMetadata?
     var maxContextLength: Int { loadedModelMetadata?.trainingContextLength ?? 2048 }
 
+    let bridge = LlamaCppBridge()
+
     func loadModel(path: String, config: ModelLoadConfiguration) async throws {
-        loadedModelMetadata = ModelMetadata(architecture: "local", trainingContextLength: config.contextLength, quantization: "local")
+        try await bridge.loadModel(path: path, config: config)
+        loadedModelMetadata = await bridge.getModelMetadata()
     }
 
-    func generate(promptTokens: [Int32], parameters: GenerationParameters) -> AsyncThrowingStream<EmittedToken, Error> {
-        stream(text: "<think>Tracing reasoning for local response.</think>Local-only generation is active.")
+    func generate(promptTokens: [Int32], parameters: GenerationParameters) async -> AsyncThrowingStream<EmittedToken, Error> {
+        return await bridge.generateStream(promptTokens: promptTokens, params: parameters)
     }
 
-    func generateFromExistingContext(parameters: GenerationParameters) -> AsyncThrowingStream<EmittedToken, Error> {
-        stream(text: "Local continuation complete.")
+    func generateFromExistingContext(parameters: GenerationParameters) async -> AsyncThrowingStream<EmittedToken, Error> {
+        return await bridge.generateStreamFromExistingContext(parameters: parameters)
     }
 
-    func resetContext() {}
-    func unloadModel() { loadedModelMetadata = nil }
-    func memoryStatistics() -> [String: Any] { [:] }
-
-    private func stream(text: String) -> AsyncThrowingStream<EmittedToken, Error> {
-        AsyncThrowingStream { continuation in
-            Task {
-                let chars = Array(text)
-                for (idx, ch) in chars.enumerated() {
-                    continuation.yield(EmittedToken(text: String(ch), tokenID: idx, isEndOfGeneration: false, cumulativeTokenCount: idx + 1, elapsedSeconds: 0, probability: 1))
-                }
-                continuation.yield(EmittedToken(text: "", tokenID: 0, isEndOfGeneration: true, cumulativeTokenCount: chars.count, elapsedSeconds: 0, probability: 1))
-                continuation.finish()
-            }
-        }
+    func tokenize(text: String, addBOS: Bool = true, special: Bool = false) async throws -> [Int32] {
+        return try await bridge.tokenize(text: text, addBOS: addBOS, special: special)
     }
+
+    func resetContext() async { await bridge.resetContext() }
+    
+    func unloadModel() async {
+        await bridge.unloadModel()
+        loadedModelMetadata = nil
+    }
+    
+    func memoryStatistics() async -> [String: Any] { await bridge.memoryStatistics() }
 }
